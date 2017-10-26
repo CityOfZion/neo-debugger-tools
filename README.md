@@ -67,7 +67,7 @@ This file can be edited to suit your needs, and the different inputs there will 
 
 ![Inputs Screenshot](images/inputs.png)
 
-# Support for other languages
+# Support for Other Languages
 
 NEO smart contracts can be coded in many different languages, and in theory, this compiler already supports any language as long as a `.neomap` file exists in the same directory as the `.avm` file.
 However, since only NeoN was modified to emit those map files during compilation, to add other languages it would be necessary to modify other compilers to emit a `.neomap`.
