@@ -1,4 +1,25 @@
-# NEO-debugger-tools
+<p align="center">
+  <img 
+    src="http://res.cloudinary.com/vidsy/image/upload/v1503160820/CoZ_Icon_DARKBLUE_200x178px_oq0gxm.png" 
+    width="125px"
+  >
+</p>
+
+<h1 align="center">neo-debugger-tools</h1>
+
+<p align="center">
+  NEO debugger tools for <b>NEO</b> smart contracts.
+</p>
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [Support for Other Languages](#support-for-other-languages)
+- [Roadmap](#roadmap)
+- [Credits and License](#credits-and-license)
+
+---
+
+# Overview
 A suite of development tools for NEO smart contracts.  
 Includes a cli disassembler and a GUI debugger. A helper library that helps loading `.avm` files and create and load `.neomap` files is also included, and can be used to create other dev tools.
 
@@ -10,7 +31,7 @@ Includes a cli disassembler and a GUI debugger. A helper library that helps load
 3. The debugger IDE can also run or step through either the assembly code or the original source (if the `.neomap` file is present in same directory as the `.avm`)
 4. The debugger will also emulate the smart contracts' API that interacts with the Blockchain (like Storage, Transactions, Blocks)
 
-## Features
+## Current Features
 - Supports any NEO `.avm`, regardless of the language / compiler used
 - Source viewer with syntax highlight powered by ScintillaNET
 - Run, step and set breakpoints in order to debug smart contracts
@@ -23,7 +44,7 @@ Includes a cli disassembler and a GUI debugger. A helper library that helps load
 - Not possible yet to inspect variable values
 - Most NEO syscalls / APIs not supported yet (work in progress)
 
-# How to use
+# Usage
 
 Open the `.avm` file in the NEO-dbg GUI application.
 This will show either assembly code for the `.avm` or C# if a debug map file was found.
@@ -63,7 +84,6 @@ The `.neomap` file format is simple; for each line you need to list a starting o
 # Credits and License #
 
 Created by Sérgio Flores (<http://lunarlabs.pt/>).
-
 
 Credits also go to the NEO team(<http://neo.org>), as a large part of this work was based on their [NEO compiler](https://github.com/neo-project/neo-compiler) and [NEO VM](https://github.com/neo-project/neo-vm).
 
