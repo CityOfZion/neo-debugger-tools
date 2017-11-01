@@ -73,7 +73,7 @@ namespace Neo.Compiler
             {
                 var conv = new ModuleConverter(log);
 
-                AntsModule am = conv.Convert(mod);
+                NeoModule am = conv.Convert(mod);
                 bytes = am.Build(filename);
                 log.Log("convert succ");
             }

@@ -37,7 +37,7 @@ namespace Neo.Compiler.MSIL
                 return null;
             }
         }
-        public static void Parse(ILMethod from, AntsModule to)
+        public static void Parse(ILMethod from, NeoModule to)
         {
             calcStack = new Stack<object>();
             bool bEnd = false;
