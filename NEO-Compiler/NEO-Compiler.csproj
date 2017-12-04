@@ -87,7 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AntsModule.cs" />
+    <Compile Include="NeoModule.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="MSIL\CctorSubVM.cs" />
     <Compile Include="MSIL\Converter.cs" />

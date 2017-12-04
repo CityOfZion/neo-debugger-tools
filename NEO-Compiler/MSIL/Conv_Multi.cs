@@ -9,7 +9,7 @@ namespace Neo.Compiler.MSIL
     /// </summary>
     public partial class ModuleConverter
     {
-        private void _ConvertStLoc(ILMethod method, OpCode src, AntsMethod to, int pos)
+        private void _ConvertStLoc(ILMethod method, OpCode src, NeoMethod to, int pos)
         {
 
             //get array
@@ -56,7 +56,7 @@ namespace Neo.Compiler.MSIL
             //_Convert1by1(VM.OpCode.DROP, null, to);
 
         }
-        private void _ConvertLdLoc(ILMethod method, OpCode src, AntsMethod to, int pos)
+        private void _ConvertLdLoc(ILMethod method, OpCode src, NeoMethod to, int pos)
         {
             //get array
             _Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
@@ -68,7 +68,7 @@ namespace Neo.Compiler.MSIL
 
 
         }
-        private void _ConvertLdLocA(ILMethod method, OpCode src, AntsMethod to, int pos)
+        private void _ConvertLdLocA(ILMethod method, OpCode src, NeoMethod to, int pos)
         {//这有两种情况，我们需要先判断这个引用地址是拿出来干嘛的
 
             var n1 = method.body_Codes[method.GetNextCodeAddr(src.addr)];
@@ -87,7 +87,7 @@ namespace Neo.Compiler.MSIL
                 _ConvertLdLoc(method, src, to, pos);
             }
         }
-        private void _ConvertLdArg(OpCode src, AntsMethod to, int pos)
+        private void _ConvertLdArg(OpCode src, NeoMethod to, int pos)
         {
             //get array
             _Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
@@ -120,7 +120,7 @@ namespace Neo.Compiler.MSIL
             ////pick
             //_Convert1by1(VM.OpCode.PICK, null, to);
         }
-        private void _ConvertStArg(OpCode src, AntsMethod to, int pos)
+        private void _ConvertStArg(OpCode src, NeoMethod to, int pos)
         {
             //get array
             _Convert1by1(VM.OpCode.DUPFROMALTSTACK, src, to);
@@ -279,7 +279,7 @@ namespace Neo.Compiler.MSIL
             return false;
 
         }
-        public bool IsNotifyCall(Mono.Cecil.MethodDefinition defs, Mono.Cecil.MethodReference refs, AntsMethod to, out string name)
+        public bool IsNotifyCall(Mono.Cecil.MethodDefinition defs, Mono.Cecil.MethodReference refs, NeoMethod to, out string name)
         {
             name = to.lastsfieldname;
             Mono.Cecil.TypeDefinition call = null;
@@ -317,7 +317,7 @@ namespace Neo.Compiler.MSIL
             name = "Notify";
             return false;
         }
-        private int _ConvertCall(OpCode src, AntsMethod to)
+        private int _ConvertCall(OpCode src, NeoMethod to)
         {
             Mono.Cecil.MethodReference refs = src.tokenUnknown as Mono.Cecil.MethodReference;
 
@@ -574,7 +574,7 @@ namespace Neo.Compiler.MSIL
                 }
                 else if (src.tokenMethod == "System.String System.String::Substring(System.Int32)")
                 {
-                    throw new Exception("antsmachine cant use this call,please use  .SubString(1,2) with 2 params.");
+                    throw new Exception("neomachine cant use this call,please use  .SubString(1,2) with 2 params.");
                 }
                 else if (src.tokenMethod == "System.String System.Char::ToString()")
                 {
@@ -705,7 +705,7 @@ namespace Neo.Compiler.MSIL
             return 0;
         }
 
-        private int _ConvertNewArr(ILMethod method, OpCode src, AntsMethod to)
+        private int _ConvertNewArr(ILMethod method, OpCode src, NeoMethod to)
         {
             var type = src.tokenType;
             if (type != "System.Byte")
@@ -774,7 +774,7 @@ namespace Neo.Compiler.MSIL
             return 0;
 
         }
-        private int _ConvertInitObj(OpCode src, AntsMethod to)
+        private int _ConvertInitObj(OpCode src, NeoMethod to)
         {
             var type = (src.tokenUnknown as Mono.Cecil.TypeReference).Resolve();
             _Convert1by1(VM.OpCode.NOP, src, to);//空白
@@ -829,7 +829,7 @@ namespace Neo.Compiler.MSIL
             //_Convert1by1(VM.OpCode.DROP, null, to);
             return 0;
         }
-        private int _ConvertNewObj(OpCode src, AntsMethod to)
+        private int _ConvertNewObj(OpCode src, NeoMethod to)
         {
             var _type = (src.tokenUnknown as Mono.Cecil.MethodReference);
             if (_type.FullName == "System.Void System.Numerics.BigInteger::.ctor(System.Byte[])")
@@ -861,7 +861,7 @@ namespace Neo.Compiler.MSIL
             return 0;
         }
 
-        private int _ConvertStfld(ILMethod method, OpCode src, AntsMethod to)
+        private int _ConvertStfld(ILMethod method, OpCode src, NeoMethod to)
         {
             var field = (src.tokenUnknown as Mono.Cecil.FieldReference).Resolve();
             var type = field.DeclaringType;
@@ -878,7 +878,7 @@ namespace Neo.Compiler.MSIL
             return 0;
         }
 
-        private int _ConvertLdfld(OpCode src, AntsMethod to)
+        private int _ConvertLdfld(OpCode src, NeoMethod to)
         {
             var field = (src.tokenUnknown as Mono.Cecil.FieldReference).Resolve();
             var type = field.DeclaringType;

@@ -8,9 +8,9 @@ namespace Neo.Compiler.MSIL
     /// </summary>
     public partial class ModuleConverter
     {
-        private AntsCode _Insert1(VM.OpCode code, string comment, AntsMethod to, byte[] data = null)
+        private NeoCode _Insert1(VM.OpCode code, string comment, NeoMethod to, byte[] data = null)
         {
-            AntsCode _code = new AntsCode();
+            NeoCode _code = new NeoCode();
             int startaddr = addr;
             _code.addr = addr;
             {
@@ -31,7 +31,7 @@ namespace Neo.Compiler.MSIL
             return _code;
         }
 
-        private AntsCode _InsertPush(byte[] data, string comment, AntsMethod to)
+        private NeoCode _InsertPush(byte[] data, string comment, NeoMethod to)
         {
             if (data.Length == 0) return _Insert1(VM.OpCode.PUSH0, comment, to);
             if (data.Length <= 75) return _Insert1((VM.OpCode)data.Length, comment, to, data);
@@ -58,7 +58,7 @@ namespace Neo.Compiler.MSIL
             return _Insert1(code, comment, to, bytes);
         }
 
-        private AntsCode _InsertPush(int i, string comment, AntsMethod to)
+        private NeoCode _InsertPush(int i, string comment, NeoMethod to)
         {
             if (i == 0) return _Insert1(VM.OpCode.PUSH0, comment, to);
             if (i == -1) return _Insert1(VM.OpCode.PUSHM1, comment, to);
@@ -66,9 +66,9 @@ namespace Neo.Compiler.MSIL
             return _InsertPush(((BigInteger)i).ToByteArray(), comment, to);
         }
 
-        private AntsCode _Convert1by1(VM.OpCode code, OpCode src, AntsMethod to, byte[] data = null)
+        private NeoCode _Convert1by1(VM.OpCode code, OpCode src, NeoMethod to, byte[] data = null)
         {
-            AntsCode _code = new AntsCode();
+            NeoCode _code = new NeoCode();
             int startaddr = addr;
             _code.addr = addr;
             if (src != null)
@@ -94,7 +94,7 @@ namespace Neo.Compiler.MSIL
             return _code;
         }
 
-        private AntsCode _ConvertPush(byte[] data, OpCode src, AntsMethod to)
+        private NeoCode _ConvertPush(byte[] data, OpCode src, NeoMethod to)
         {
             if (data.Length == 0) return _Convert1by1(VM.OpCode.PUSH0, src, to);
             if (data.Length <= 75) return _Convert1by1((VM.OpCode)data.Length, src, to, data);
@@ -121,14 +121,14 @@ namespace Neo.Compiler.MSIL
             return _Convert1by1(code, src, to, bytes);
         }
 
-        private AntsCode _ConvertPush(long i, OpCode src, AntsMethod to)
+        private NeoCode _ConvertPush(long i, OpCode src, NeoMethod to)
         {
             if (i == 0) return _Convert1by1(VM.OpCode.PUSH0, src, to);
             if (i == -1) return _Convert1by1(VM.OpCode.PUSHM1, src, to);
             if (i > 0 && i <= 16) return _Convert1by1((VM.OpCode)(byte)i + 0x50, src, to);
             return _ConvertPush(((BigInteger)i).ToByteArray(), src, to);
         }
-        private int _ConvertPushI8WithConv(ILMethod from,long i ,OpCode src,AntsMethod to)
+        private int _ConvertPushI8WithConv(ILMethod from,long i ,OpCode src,NeoMethod to)
         {
             var next = from.GetNextCodeAddr(src.addr);
             var code = from.body_Codes[next].code;
@@ -172,7 +172,7 @@ namespace Neo.Compiler.MSIL
             }
 
         }
-        private int _ConvertPushI4WithConv(ILMethod from, int i, OpCode src, AntsMethod to)
+        private int _ConvertPushI4WithConv(ILMethod from, int i, OpCode src, NeoMethod to)
         {
             var next = from.GetNextCodeAddr(src.addr);
             var code = from.body_Codes[next].code;
@@ -216,7 +216,7 @@ namespace Neo.Compiler.MSIL
             }
 
         }
-        private void _insertBeginCode(ILMethod from, AntsMethod to)
+        private void _insertBeginCode(ILMethod from, NeoMethod to)
         {
             ////压入深度临时栈
             //_Insert1(VM.OpCode.DEPTH, "record depth.", to);
@@ -250,7 +250,7 @@ namespace Neo.Compiler.MSIL
             }
         }
 
-        private void _insertEndCode(ILMethod from, AntsMethod to, OpCode src)
+        private void _insertEndCode(ILMethod from, NeoMethod to, OpCode src)
         {
             ////占位不谢
             _Convert1by1(VM.OpCode.NOP, src, to);
