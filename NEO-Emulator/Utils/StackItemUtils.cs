@@ -76,7 +76,7 @@ namespace Neo.Emulator.Utils
             for (int i = 0; i < data.Length; i++)
             {
                 var c = (char)data[i];
-                var isValidText = char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsWhiteSpace(c);
+                var isValidText = char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsWhiteSpace(c)|| char.IsSymbol(c);
                 if (!isValidText)
                 {
                     if (preferInts)

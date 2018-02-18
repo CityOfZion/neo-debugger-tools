@@ -37,11 +37,11 @@
             this.label5 = new System.Windows.Forms.Label();
             this.assetAmmount = new System.Windows.Forms.TextBox();
             this.inputGrid = new System.Windows.Forms.DataGridView();
+            this.Parameter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Value = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.button3 = new System.Windows.Forms.Button();
             this.addressLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.Parameter = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Value = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.inputGrid)).BeginInit();
             this.SuspendLayout();
             // 
@@ -134,6 +134,20 @@
             this.inputGrid.Size = new System.Drawing.Size(455, 125);
             this.inputGrid.TabIndex = 16;
             // 
+            // Parameter
+            // 
+            this.Parameter.HeaderText = "Parameter";
+            this.Parameter.Name = "Parameter";
+            this.Parameter.ReadOnly = true;
+            this.Parameter.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            // 
+            // Value
+            // 
+            this.Value.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Value.HeaderText = "Value";
+            this.Value.Name = "Value";
+            this.Value.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            // 
             // button3
             // 
             this.button3.Location = new System.Drawing.Point(299, 329);
@@ -142,6 +156,7 @@
             this.button3.TabIndex = 19;
             this.button3.Text = "Load Private Key";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // addressLabel
             // 
@@ -161,20 +176,6 @@
             this.label2.Size = new System.Drawing.Size(84, 13);
             this.label2.TabIndex = 17;
             this.label2.Text = "Invoker Address";
-            // 
-            // Parameter
-            // 
-            this.Parameter.HeaderText = "Parameter";
-            this.Parameter.Name = "Parameter";
-            this.Parameter.ReadOnly = true;
-            this.Parameter.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            // 
-            // Value
-            // 
-            this.Value.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Value.HeaderText = "Value";
-            this.Value.Name = "Value";
-            this.Value.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             // 
             // RunForm
             // 
