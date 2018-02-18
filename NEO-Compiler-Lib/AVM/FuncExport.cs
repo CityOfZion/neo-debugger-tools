@@ -1,11 +1,10 @@
-﻿using Neo.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace vmtool
+namespace Neo.Compiler.AVM
 {
 
     public class FuncExport

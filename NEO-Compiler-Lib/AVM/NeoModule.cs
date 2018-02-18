@@ -1,9 +1,8 @@
-﻿using Neo.Emulator.Dissambler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Neo.Compiler
+namespace Neo.Compiler.AVM
 {
     public class NeoModule
     {

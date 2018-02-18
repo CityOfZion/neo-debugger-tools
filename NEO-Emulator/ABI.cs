@@ -20,10 +20,13 @@ namespace Neo.Emulator
     public class ABI
     {
         public Dictionary<string, AVMFunction> functions = new Dictionary<string, AVMFunction>();
-        public AVMFunction entryPoint;
+        public AVMFunction entryPoint { get; private set; }
+        public readonly string fileName;
 
         public ABI(string fileName)
         {
+            this.fileName = fileName;
+
             var json = File.ReadAllText(fileName);
             var root = JSONReader.ReadFromString(json);
 

@@ -1,12 +1,11 @@
 ﻿using Neo.Compiler.MSIL;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 
-namespace Neo.Compiler
+namespace Neo.Compiler.AVM
 {
-    public class Compiler
+    public class AVMCompiler
     {
         //Console.WriteLine("helo ha:"+args[0]); //普通输出
         //Console.WriteLine("<WARN> 这是一个严重的问题。");//警告输出，黄字
@@ -39,11 +38,16 @@ namespace Neo.Compiler
                 log.Log("Open File Error:" + err.ToString());
                 return false;
             }
+
+            var exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            var curPath = Directory.GetCurrentDirectory();
+            Directory.SetCurrentDirectory(exePath);
+
             //load module
             try
             {
                 mod.LoadModule(fs, fspdb);
-            }
+           }
             catch (Exception err)
             {
                 log.Log("LoadModule Error:" + err.ToString());
@@ -59,13 +63,16 @@ namespace Neo.Compiler
                 var conv = new ModuleConverter(log);
 
                 NeoModule am = conv.Convert(mod);
+
+                Directory.SetCurrentDirectory(curPath);
+
                 bytes = am.Build();
                 log.Log("convert succ");
 
 
                 try
                 {
-                    var outjson = vmtool.FuncExport.Export(am, bytes);
+                    var outjson = FuncExport.Export(am, bytes);
                     StringBuilder sb = new StringBuilder();
                     outjson.ConvertToStringWithFormat(sb, 0);
                     jsonstr = sb.ToString();

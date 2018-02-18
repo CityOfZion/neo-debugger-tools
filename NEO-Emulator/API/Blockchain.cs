@@ -14,6 +14,18 @@ namespace Neo.Emulator.API
         public Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
         public List<Address> addresses = new List<Address>();
 
+        public Block currentBlock
+        {
+            get
+            {
+                if (blocks.Count == 0)
+                {
+                    return null;
+                }
+                return blocks[currentHeight];
+            }
+        }
+
         public Blockchain()
         {
 
@@ -36,10 +48,10 @@ namespace Neo.Emulator.API
             {
                 if (child.Name.Equals("block"))
                 {
-                    var block = new Block();
+                    uint index = (uint)(blocks.Count + 1);
+                    var block = new Block(index);
                     if (block.Load(child))
                     {
-                        uint index = (uint)(blocks.Count + 1);
                         blocks[index] = block;
                     }
                 }
@@ -59,7 +71,7 @@ namespace Neo.Emulator.API
         public void Save(string fileName)
         {
             var result = DataNode.CreateObject("blockchain");
-            for (uint i=1; i<=blocks.Count; i++)
+            for (uint i = 1; i <= blocks.Count; i++)
             {
                 var block = blocks[i];
                 result.AddNode(block.Save());
@@ -116,7 +128,7 @@ namespace Neo.Emulator.API
 
             var hash = obj.GetByteArray();
 
-            if (hash.Length>1)
+            if (hash.Length > 1)
             {
                 throw new NotImplementedException();
             }
@@ -124,7 +136,7 @@ namespace Neo.Emulator.API
             var blockchain = engine.GetBlockchain();
 
             if (hash.Length == 1)
-            { 
+            {
                 var temp = obj.GetBigInteger();
 
                 var height = (uint)temp;
@@ -136,9 +148,10 @@ namespace Neo.Emulator.API
                 else
                 if (height <= blockchain.currentHeight)
                 {
-                    block = new Block();
+                    uint index = height + 1;
+                    block = new Block(index);
                     block.timestamp = 1506787300;
-                    blockchain.blocks[height+1] = block;
+                    blockchain.blocks[index] = block;
                 }
             }
 

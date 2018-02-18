@@ -1,4 +1,4 @@
-﻿namespace Neo.Debugger
+﻿namespace Neo.Debugger.Forms
 {
     partial class StorageForm
     {

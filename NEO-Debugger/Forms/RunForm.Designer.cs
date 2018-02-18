@@ -1,4 +1,4 @@
-﻿namespace Neo.Debugger
+﻿namespace Neo.Debugger.Forms
 {
     partial class RunForm
     {
@@ -124,6 +124,7 @@
             // 
             this.inputGrid.AllowUserToAddRows = false;
             this.inputGrid.AllowUserToDeleteRows = false;
+            this.inputGrid.AllowUserToResizeRows = false;
             this.inputGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.inputGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Parameter,
@@ -133,6 +134,10 @@
             this.inputGrid.RowHeadersVisible = false;
             this.inputGrid.Size = new System.Drawing.Size(455, 125);
             this.inputGrid.TabIndex = 16;
+            this.inputGrid.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.inputGrid_CellBeginEdit);
+            this.inputGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.inputGrid_CellEndEdit);
+            this.inputGrid.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.inputGrid_CellEnter);
+            this.inputGrid.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.inputGrid_CellLeave);
             // 
             // Parameter
             // 

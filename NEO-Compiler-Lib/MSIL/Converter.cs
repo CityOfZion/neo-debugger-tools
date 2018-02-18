@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Neo.Compiler.AVM;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
@@ -23,7 +24,7 @@ namespace Neo.Compiler.MSIL
     //    }
 
     //}
-    class DefLogger : ILogger
+    public class DefLogger : ILogger
     {
         public void Log(string log)
         {

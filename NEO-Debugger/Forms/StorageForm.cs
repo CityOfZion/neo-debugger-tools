@@ -3,7 +3,7 @@ using Neo.Emulator.Utils;
 using System;
 using System.Windows.Forms;
 
-namespace Neo.Debugger
+namespace Neo.Debugger.Forms
 {
     public partial class StorageForm : Form
     {
@@ -12,11 +12,6 @@ namespace Neo.Debugger
         public StorageForm()
         {
             InitializeComponent();
-        }
-
-        private void StorageForm_Load(object sender, EventArgs e)
-        {
-            dataGridView1.Rows.Clear();
 
             dataGridView1.Columns.Add("Key", "Key");
             dataGridView1.Columns.Add("Values", "Content");
@@ -30,6 +25,11 @@ namespace Neo.Debugger
             dataGridView1.Columns[1].ReadOnly = true;
             dataGridView1.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns[1].FillWeight = 4;
+        }
+
+        private void StorageForm_Load(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
 
             var storage = debugger.currentAddress.storage;
             foreach (var entry in storage.entries)

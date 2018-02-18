@@ -7,7 +7,13 @@ namespace Neo.Emulator.API
 {
     public class Block : Header
     {
+        public uint height;
         public List<Transaction> transactions = new List<Transaction>();
+
+        public Block(uint height)
+        {
+            this.height = height;
+        }
 
         internal bool Load(DataNode root)
         {
@@ -17,7 +23,7 @@ namespace Neo.Emulator.API
             {
                 if (child.Name == "transaction")
                 {
-                    var tx = new Transaction();
+                    var tx = new Transaction(this);
                     tx.Load(child);
                     transactions.Add(tx);
                 }

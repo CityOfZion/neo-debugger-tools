@@ -7,6 +7,7 @@ using System.Numerics;
 using Neo.Emulator.API;
 using LunarParser;
 using Neo.Emulator.Utils;
+using System.Diagnostics;
 
 namespace Neo.Emulator
 {
@@ -84,6 +85,11 @@ namespace Neo.Emulator
             this.interop = new InteropService();
         }
 
+        public int GetInstructionPtr()
+        {
+            return engine.CurrentContext.InstructionPointer;
+        }
+
         public void SetExecutingAddress(Address address)
         {
             this.currentAddress = address;
@@ -100,6 +106,7 @@ namespace Neo.Emulator
                 var attr = (SyscallAttribute)method.GetCustomAttributes(typeof(SyscallAttribute), false).FirstOrDefault();
 
                 interop.Register(attr.Method, (engine) => { return (bool)method.Invoke(null, new object[] { engine }); }, attr.gasCost);
+                Debug.WriteLine("interopRegister:\t" + attr.Method);
             }
         }
 
@@ -165,7 +172,7 @@ namespace Neo.Emulator
             if (currentTransaction == null)
             {
                 //throw new Exception("Transaction not set");
-                currentTransaction = new Transaction();
+                currentTransaction = new Transaction(this.blockchain.currentBlock);
             }
 
             _usedGas = 0;
@@ -356,14 +363,15 @@ namespace Neo.Emulator
             output.id = id;
             output.hash = key != null?  key.CompressedPublicKey: new byte[0];
 
-            var tx = new Transaction();
+            var tx = new Transaction(blockchain.currentBlock);
             tx.outputs = new List<TransactionOutput>();
             tx.outputs.Add(output);
 
-            var block = new Block();
+            uint index = blockchain.currentHeight + 1;
+            var block = new Block(index);
             block.transactions.Add(tx);
            
-            blockchain.blocks[blockchain.currentHeight+1] = block;
+            blockchain.blocks[index] = block;
 
             this.currentTransaction = tx;
         }
@@ -401,6 +409,11 @@ namespace Neo.Emulator
             }
             else
             if (item.Kind == NodeKind.Null)
+            {
+                return null;
+            }
+            else
+            if (item.Value == null)
             {
                 return null;
             }

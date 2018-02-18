@@ -1,10 +1,9 @@
 ﻿using Neo.Emulator.Dissambler;
-using NEO.AllianceOfThinWallet.Cryptography;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace Neo.Compiler
+namespace Neo.Compiler.AVM
 {
     public static class DebugInfo
     {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Neo.Compiler.AVM;
+using System;
 using System.Numerics;
 
 namespace Neo.Compiler.MSIL
