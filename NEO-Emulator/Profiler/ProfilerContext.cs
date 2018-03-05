@@ -29,10 +29,10 @@ namespace Neo.Emulator.Profiler
 
     public class ProfilerContext
     {
-        public string _filename;
+        public string _filename = "Unknown.cs";
         public string[] _source = { "" };
-        public int _lineno;
-        public string _sourceString = "";
+        public int _lineno = 0;
+        public string _sourceString = "// No source code available";
 
         public string[] opcodeNames = new string[256];
         public double[] opcodeCosts = new double[256];
@@ -60,7 +60,10 @@ namespace Neo.Emulator.Profiler
             if (lineno >= 0)
             {
                 _lineno = lineno;
-                _sourceString = _source[lineno];
+                if (_lineno < _source.Length)
+                {
+                    _sourceString = _source[lineno];
+                }
             }
         }
 

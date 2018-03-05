@@ -20,6 +20,7 @@ namespace Neo.Debugger.Forms
     {
         //Command line param
         private string _sourceAvmPath;
+        private string _argumentsAvmFile;
         private Settings _settings;
         private DebugManager _debugger;
 
@@ -28,6 +29,7 @@ namespace Neo.Debugger.Forms
         public MainForm(string argumentsAvmFile)
         {
             InitializeComponent();
+            _argumentsAvmFile = argumentsAvmFile;
             _sourceAvmPath = argumentsAvmFile;
         }
 
@@ -91,11 +93,24 @@ namespace Neo.Debugger.Forms
             _debugger.SendToLog += _debugger_SendToLog;
 
             //Load if we had a file on the command line or a previously opened
+            bool success = false;
             try
             {
-                LoadDebugFile(_sourceAvmPath);
+                success = LoadDebugFile(_sourceAvmPath);
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            if (!success)
+            {
+                if (!String.IsNullOrEmpty(_argumentsAvmFile)) // display when launched with command line arg (e.g. from Visual Studio/Start)
+                {
+                    string cwd = Environment.CurrentDirectory;
+                    MessageBox.Show("Can't open '" + _sourceAvmPath + "'. Current directory is '" + cwd + "'", "Open AVM File");
+                }
+            }
         }
 
         private bool LoadDebugFile(string path)
@@ -113,6 +128,7 @@ namespace Neo.Debugger.Forms
 
             //Set the UI
             FileName.Text = _debugger.AvmFileName;
+            this.Text += " - " + FileName.Text;
             UpdateSourceViewMenus();
             ReloadTextArea();
             return true;

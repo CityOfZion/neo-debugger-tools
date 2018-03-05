@@ -332,7 +332,10 @@ namespace Neo.Debugger.Utils
             blockchain.Load(_blockchainFilePath);
             _emulator = new NeoEmulator(blockchain);
 
-            _emulator.SetProfilerFilenameSource(srcFileName, _debugContent[DebugMode.Source]);
+            if (_debugContent.Keys.Contains(DebugMode.Source) && !String.IsNullOrEmpty(_debugContent[DebugMode.Source]))
+            {
+                _emulator.SetProfilerFilenameSource(srcFileName, _debugContent[DebugMode.Source]);
+            }
 
             return true;
         }
