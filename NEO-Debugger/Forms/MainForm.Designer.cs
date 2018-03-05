@@ -62,6 +62,7 @@
             this.blockchainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cCompilerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.keyDecoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearch = new System.Windows.Forms.Panel();
             this.BtnNextSearch = new System.Windows.Forms.Button();
             this.BtnPrevSearch = new System.Windows.Forms.Button();
@@ -73,7 +74,6 @@
             this.stackPanel = new System.Windows.Forms.RichTextBox();
             this.stackLabel = new System.Windows.Forms.Label();
             this.gasCostLabel = new System.Windows.Forms.Label();
-            this.keyDecoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.PanelSearch.SuspendLayout();
             this.SuspendLayout();
@@ -355,9 +355,16 @@
             // cCompilerToolStripMenuItem
             // 
             this.cCompilerToolStripMenuItem.Name = "cCompilerToolStripMenuItem";
-            this.cCompilerToolStripMenuItem.Size = new System.Drawing.Size(155, 24);
+            this.cCompilerToolStripMenuItem.Size = new System.Drawing.Size(154, 24);
             this.cCompilerToolStripMenuItem.Text = "C# Compiler";
             this.cCompilerToolStripMenuItem.Click += new System.EventHandler(this.cCompilerToolStripMenuItem_Click);
+            // 
+            // keyDecoderToolStripMenuItem
+            // 
+            this.keyDecoderToolStripMenuItem.Name = "keyDecoderToolStripMenuItem";
+            this.keyDecoderToolStripMenuItem.Size = new System.Drawing.Size(154, 24);
+            this.keyDecoderToolStripMenuItem.Text = "Key Tool";
+            this.keyDecoderToolStripMenuItem.Click += new System.EventHandler(this.keyDecoderToolStripMenuItem_Click);
             // 
             // PanelSearch
             // 
@@ -487,13 +494,6 @@
             this.gasCostLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.gasCostLabel.Visible = false;
             // 
-            // keyDecoderToolStripMenuItem
-            // 
-            this.keyDecoderToolStripMenuItem.Name = "keyDecoderToolStripMenuItem";
-            this.keyDecoderToolStripMenuItem.Size = new System.Drawing.Size(155, 24);
-            this.keyDecoderToolStripMenuItem.Text = "Key Decoder";
-            this.keyDecoderToolStripMenuItem.Click += new System.EventHandler(this.keyDecoderToolStripMenuItem_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -514,7 +514,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainForm";
-            this.Text = "NEO debugger";
+            this.Text = "NEO Debugger";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.MainForm_Resize);

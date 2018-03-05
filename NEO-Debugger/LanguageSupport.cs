@@ -1,25 +1,16 @@
-﻿using System;
+﻿using Neo.Debugger.Data;
+using System;
 using System.IO;
 
 namespace Neo.Debugger
 {
-    public enum SourceLanguageKind
-    {
-        Other,
-        Assembly,
-        CSharp,
-        Java,
-        Python,
-        Javascript
-    }
-
     public static class LanguageSupport
     {
-        public static string[] GetLanguageKeywords(SourceLanguageKind language)
+        public static string[] GetLanguageKeywords(SourceLanguage language)
         {
             switch (language)
             {
-                case SourceLanguageKind.CSharp:
+                case SourceLanguage.CSharp:
                     {
                         return new string[2]
                         {
@@ -28,7 +19,7 @@ namespace Neo.Debugger
                         };
                     }
 
-                case SourceLanguageKind.Python:
+                case SourceLanguage.Python:
                     {
                         return new string[2]
                         {
@@ -41,19 +32,19 @@ namespace Neo.Debugger
             }
         }
 
-        public static SourceLanguageKind DetectLanguage(string fileName)
+        public static SourceLanguage DetectLanguage(string fileName)
         {
             var extension = Path.GetExtension(fileName).ToLowerInvariant();
 
             switch (extension)
             {
-                case ".cs": return SourceLanguageKind.CSharp;
-                case ".java": return SourceLanguageKind.Java;
-                case ".py": return SourceLanguageKind.Python;
-                case ".js": return SourceLanguageKind.Javascript;
-                case ".asm": return SourceLanguageKind.Assembly;
+                case ".cs": return SourceLanguage.CSharp;
+                case ".java": return SourceLanguage.Java;
+                case ".py": return SourceLanguage.Python;
+                case ".js": return SourceLanguage.Javascript;
+                case ".asm": return SourceLanguage.Assembly;
 
-                default: return SourceLanguageKind.Other;
+                default: return SourceLanguage.Other;
             }
         }
 

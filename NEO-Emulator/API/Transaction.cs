@@ -102,9 +102,9 @@ namespace Neo.Emulator.API
                 transactions.Add(new VM.Types.InteropInterface(entry));
             }
 
-            var outputs = new VM.Types.Array(transactions.ToArray<StackItem>());
+            var inputs = new VM.Types.Array(transactions.ToArray<StackItem>());
 
-            engine.EvaluationStack.Push(outputs);
+            engine.EvaluationStack.Push(inputs);
 
             return true;
         }
@@ -159,15 +159,13 @@ namespace Neo.Emulator.API
             {
                 if (child.Name == "input")
                 {
-                    var input = new TransactionInput();
-                    input.Load(child);
+                    var input = TransactionInput.FromNode(child);
                     inputs.Add(input);
                 }
 
                 if (child.Name == "output")
                 {
-                    var output = new TransactionOutput();
-                    output.Load(child);
+                    var output = TransactionOutput.FromNode(child);
                     outputs.Add(output);
                 }
             }

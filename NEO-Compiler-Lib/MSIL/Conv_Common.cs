@@ -220,10 +220,12 @@ namespace Neo.Compiler.MSIL
         private void _insertBeginCode(ILMethod from, NeoMethod to)
         {
             ////压入深度临时栈
+            //Pressed into the depth of the temporary stack
             //_Insert1(VM.OpCode.DEPTH, "record depth.", to);
             //_Insert1(VM.OpCode.TOALTSTACK, "", to);
 
             ////初始化临时槽位位置
+            //Initialize the temporary slot location
             //foreach (var src in from.body_Variables)
             //{
             //    to.body_Variables.Add(new ILParam(src.name, src.type));
@@ -231,10 +233,12 @@ namespace Neo.Compiler.MSIL
             //}
 
             //新玩法，用一个数组，应该能减少指令数量
+            // New plan, using an array, should reduce the number of instructions
             _InsertPush(from.paramtypes.Count + from.body_Variables.Count, "begincode", to);
             _Insert1(VM.OpCode.NEWARRAY, "", to);
             _Insert1(VM.OpCode.TOALTSTACK, "", to);
             //移动参数槽位
+            //Move parameter slot
             for (var i = 0; i < from.paramtypes.Count; i++)
             {
                 //getarray
@@ -254,6 +258,7 @@ namespace Neo.Compiler.MSIL
         private void _insertEndCode(ILMethod from, NeoMethod to, OpCode src)
         {
             ////占位不谢
+            ////Do not thank the placeholder
             _Convert1by1(VM.OpCode.NOP, src, to);
 
             ////移除临时槽位
@@ -273,6 +278,7 @@ namespace Neo.Compiler.MSIL
             //    _Insert1(VM.OpCode.XDROP, null, to, null);
             //}
             ////移除参数槽位
+            ////Remove the parameter slot
             //for (var i = 0; i < from.paramtypes.Count; i++)
             //{
             //    //d
@@ -292,6 +298,7 @@ namespace Neo.Compiler.MSIL
             //}
 
             //移除深度临时栈
+            //Remove the depth temporary stack
             _Insert1(VM.OpCode.FROMALTSTACK, "endcode", to);
             _Insert1(VM.OpCode.DROP, "", to);
         }

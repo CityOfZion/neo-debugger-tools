@@ -7,11 +7,12 @@ namespace Neo.Debugger.Forms
 {
     public partial class StorageForm : Form
     {
-        public NeoEmulator debugger;
+        private NeoEmulator _debugger;
 
-        public StorageForm()
+        public StorageForm(NeoEmulator debugger)
         {
             InitializeComponent();
+            _debugger = debugger;
 
             dataGridView1.Columns.Add("Key", "Key");
             dataGridView1.Columns.Add("Values", "Content");
@@ -31,10 +32,11 @@ namespace Neo.Debugger.Forms
         {
             dataGridView1.Rows.Clear();
 
-            var storage = debugger.currentAddress.storage;
+            var storage = _debugger.currentAddress.storage;
             foreach (var entry in storage.entries)
             {
-                dataGridView1.Rows.Add(FormattingUtils.OutputData(entry.Key, false), FormattingUtils.OutputData(entry.Value, false, true));
+                string hintType = entry.Key.Length == 20 ? "Integer" : "Integer";
+                dataGridView1.Rows.Add(FormattingUtils.OutputData(entry.Key, false), FormattingUtils.OutputData(entry.Value, false, hintType));
             }
         }
     }

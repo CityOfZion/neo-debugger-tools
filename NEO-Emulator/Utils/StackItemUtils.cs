@@ -1,6 +1,7 @@
 ﻿using Neo.Cryptography;
 using Neo.VM;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -10,33 +11,44 @@ namespace Neo.Emulator.Utils
 {
     public static class FormattingUtils
     {
-        public static string StackItemAsString(StackItem item, bool addQuotes = false)
+        public static string StackItemAsString(StackItem item, bool addQuotes = false, string hintType = null)
         {
-            if (item.IsArray)
+            if (item is ICollection)
             {
+                var bytes = item.GetByteArray();
+                if (bytes != null && bytes.Length == 20)
+                {
+                    var signatureHash = new UInt160(bytes);
+                    return Crypto.Default.ToAddress(signatureHash);
+                }
+
                 var s = new StringBuilder();
-                var items = item.GetArray();
+                var items = (ICollection)item;
 
                 s.Append('[');
-                for (int i = 0; i < items.Length; i++)
+                int i = 0;
+                foreach (StackItem element in items)
                 {
-                    var element = items[i];
                     if (i > 0)
                     {
                         s.Append(',');
                     }
                     s.Append(StackItemAsString(element));
+
+                    i++;
                 }
                 s.Append(']');
+
+
                 return s.ToString();
             }
 
-            if (item is Neo.VM.Types.Boolean)
+            if (item is Neo.VM.Types.Boolean && hintType == null)
             {
                 return item.GetBoolean().ToString();
             }
 
-            if (item is Neo.VM.Types.Integer)
+            if (item is Neo.VM.Types.Integer && hintType == null)
             {
                 return item.GetBigInteger().ToString();
             }
@@ -46,20 +58,22 @@ namespace Neo.Emulator.Utils
                 return "{InteropInterface}";
             }
 
-            var data = item.GetByteArray();
-
-            if (data == null)
+            byte[] data = null;
+            
+            try {
+                data = item.GetByteArray();
+            }
+            catch
             {
-                return "[Null]";
+
+            }
+            
+            if ((data == null || data.Length == 0) && hintType == null)
+            {
+                return "Null";
             }
 
-            if (data == null || data.Length == 0)
-            {
-                return "False";
-            }
-
-
-            return FormattingUtils.OutputData(data, addQuotes);
+            return FormattingUtils.OutputData(data, addQuotes, hintType);
         }
 
         public static string OutputLine(string col1, string col2, string col3)
@@ -83,11 +97,11 @@ namespace Neo.Emulator.Utils
             Void = 255
         };
 
-        public static string OutputData(byte[] data, bool addQuotes, bool preferInts = false)
+        public static string OutputData(byte[] data, bool addQuotes, string hintType = null)
         {
             if (data == null)
             {
-                return "[Null]";
+                return "Null";
             }
 
             byte[] separator = { Convert.ToByte(';') };
@@ -198,28 +212,46 @@ namespace Neo.Emulator.Utils
             }
             else
             {
+                if (hintType != null)
+                {
+                    switch (hintType.ToLower())
+                    {
+                        case "string":
+                            {
+                                return System.Text.Encoding.UTF8.GetString(data);
+                            }
+
+                        case "boolean":
+                            {
+                                return (data != null && data.Length > 0 && data[0] != 0) ? "True" : "False";
+                            }
+
+                        case "integer":
+                            {
+                                return new BigInteger(data).ToString();
+                            }
+                    }
+                }
+
                 for (int i = 0; i < dataLen; i++)
                 {
                     var c = (char)data[i];
+
+
                     var isValidText = char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsWhiteSpace(c) 
                                                               || "!@#$%^&*()-=_+[]{}|;':,./<>?".Contains(c.ToString());
                     if (!isValidText)
                     {
-                        if (preferInts)
-                        {
-                            var val = new BigInteger(data);
-                            return val.ToString();
-                        }
-
                         if (data.Length == 20)
                         {
-                            var signatureHash = Crypto.Default.ToScriptHash(data);
+                            var signatureHash = new UInt160(data);
                             return Crypto.Default.ToAddress(signatureHash);
                         }
 
                         return OutputHex(data);
                     }
                 }
+
             }
 
             var result = System.Text.Encoding.ASCII.GetString(data);

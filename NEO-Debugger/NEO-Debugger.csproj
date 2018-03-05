@@ -276,6 +276,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Enums.cs" />
     <Compile Include="Forms\BlockchainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -294,6 +295,12 @@
     <Compile Include="Forms\KeyToolForm.Designer.cs">
       <DependentUpon>KeyToolForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RunForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RunForm.Designer.cs">
+      <DependentUpon>RunForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="LanguageSupport.cs" />
     <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
@@ -301,14 +308,10 @@
     <Compile Include="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\DebugParameters.cs" />
+    <Compile Include="Models\EventArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Forms\RunForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\RunForm.Designer.cs">
-      <DependentUpon>RunForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="Forms\StorageForm.cs">
       <SubType>Form</SubType>
@@ -316,9 +319,12 @@
     <Compile Include="Forms\StorageForm.Designer.cs">
       <DependentUpon>StorageForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Utils\ColorUtil.cs" />
+    <Compile Include="Utils\DebugManager.cs" />
     <Compile Include="Utils\HotKeyManager.cs" />
     <Compile Include="Utils\InputBox.cs" />
     <Compile Include="Utils\SearchManager.cs" />
+    <Compile Include="Utils\Util.cs" />
     <EmbeddedResource Include="Forms\BlockchainForm.resx">
       <DependentUpon>BlockchainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -333,6 +339,9 @@
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RunForm.resx">
+      <DependentUpon>RunForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -343,9 +352,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="Forms\RunForm.resx">
-      <DependentUpon>RunForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\StorageForm.resx">
       <DependentUpon>StorageForm.cs</DependentUpon>
     </EmbeddedResource>

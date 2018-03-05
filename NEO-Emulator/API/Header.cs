@@ -7,6 +7,11 @@ namespace Neo.Emulator.API
     {
         public uint timestamp;
 
+        public Header(uint timestamp)
+        {
+            this.timestamp = timestamp;
+        }
+
         [Syscall("Neo.Header.GetHash")]
         public static bool GetHash(ExecutionEngine engine)
         {

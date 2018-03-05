@@ -19,6 +19,7 @@ namespace Neo.Compiler.MSIL
     //        }
     //        var converter = new ModuleConverter(logger);
     //        //有异常的话在 convert 函数中会直接throw 出来
+    //        //Abnormal words in the convert function will be thrown directly
     //        var antmodule = converter.Convert(module);
     //        return antmodule.Build();
     //    }
@@ -33,6 +34,7 @@ namespace Neo.Compiler.MSIL
     }
     /// <summary>
     /// 从ILCode 向小蚁 VM 转换的转换器
+    /// Converter from ILCode to Smalltalk VM
     /// </summary>
     public partial class ModuleConverter
     {
@@ -72,15 +74,15 @@ namespace Neo.Compiler.MSIL
             foreach (var t in _in.mapType)
             {
                 if (t.Key.Contains("<"))
-                    continue;//系统的，不要
-                if (t.Key.Contains("_API_")) continue;//api的，不要
+                    continue;//系统的，不要 system, no
+                if (t.Key.Contains("_API_")) continue;//api的，不要 api, do not
                 if (t.Key.Contains(".My."))
                     continue;//vb system
                 foreach (var m in t.Value.methods)
                 {
                     if (m.Value.method == null) continue;
                     if (m.Value.method.IsAddOn || m.Value.method.IsRemoveOn)
-                        continue;//event 自动生成的代码，不要
+                        continue;//event 自动生成的代码，不要 Auto - generated code, do not
                     NeoMethod nm = new NeoMethod();
                     if (m.Key.Contains(".cctor"))
                     {
@@ -125,8 +127,8 @@ namespace Neo.Compiler.MSIL
             foreach (var t in _in.mapType)
             {
                 if (t.Key.Contains("<"))
-                    continue;//系统的，不要
-                if (t.Key.Contains("_API_")) continue;//api的，不要
+                    continue;//系统的，不要 Systematic, no
+                if (t.Key.Contains("_API_")) continue;//api的，不要 api, do not
                 if (t.Key.Contains(".My."))
                     continue;//vb system
 
@@ -139,7 +141,7 @@ namespace Neo.Compiler.MSIL
                         continue;
                     }
                     if (m.Value.method.IsAddOn || m.Value.method.IsRemoveOn)
-                        continue;//event 自动生成的代码，不要
+                        continue;//event 自动生成的代码，不要 Auto-generated code, do not
 
                     var nm = this.methodLink[m.Value];
 
@@ -186,7 +188,7 @@ namespace Neo.Compiler.MSIL
                     //}
                 }
             }
-            //转换完了，做个link，全部拼到一起
+            //转换完了，做个link，全部拼到一起 Conversion finished, be a link, all together
             string mainmethod = "";
 
             foreach (var key in outModule.mapMethods.Keys)
@@ -216,15 +218,15 @@ namespace Neo.Compiler.MSIL
             }
             else
             {
-                //单一默认入口
+                //单一默认入口 Single default entry
                 logger.Log("Find entrypoint:" + mainmethod);
             }
 
             outModule.mainMethod = mainmethod;
             this.LinkCode(mainmethod);
-            //this.findFirstFunc();//得找到第一个函数
-            //然后给每个method 分配一个func addr
-            //还需要对所有的call 做一次地址转换
+            //this.findFirstFunc();//得找到第一个函数 Have to find the first function
+            //然后给每个method 分配一个func addr Then assign a func addr to each method
+            //还需要对所有的call 做一次地址转换 Also need to do an address translation for all calls
 
             //this.outModule.Build();
             return outModule;
@@ -264,7 +266,7 @@ namespace Neo.Compiler.MSIL
                     if (c.Value.bytes != null)
                         addr += c.Value.bytes.Length;
 
-                    //地址偏移
+                    //地址偏移 Address offset
                     c.Value.addr += m.Value.funcaddr;
                 }
             }
@@ -272,7 +274,7 @@ namespace Neo.Compiler.MSIL
             foreach (var c in this.outModule.total_Codes.Values)
             {
                 if (c.needfixfunc)
-                {//需要地址转换
+                {//需要地址转换 Need address translation
                     var addrfunc = this.outModule.mapMethods[c.srcfunc].funcaddr;
                     Int16 addrconv = (Int16)(addrfunc - c.addr);
                     c.bytes = BitConverter.GetBytes(addrconv);
@@ -289,6 +291,7 @@ namespace Neo.Compiler.MSIL
             this.addrconv.Clear();
 
             //插入一个记录深度的代码，再往前的是参数
+            // Insert a record depth code, and then forward the parameters
             _insertBeginCode(from, to);
 
             int skipcount = 0;
@@ -301,6 +304,7 @@ namespace Neo.Compiler.MSIL
                 else
                 {
                     //在return之前加入清理参数代码
+                    //Add the cleaning parameter code before return
                     if (src.code == CodeEx.Ret)//before return 
                     {
                         _insertEndCode(from, to, src);
@@ -407,6 +411,7 @@ namespace Neo.Compiler.MSIL
                     break;
                 case CodeEx.Ret:
                     //return 在外面特殊处理了
+                    //Special treatment on the outside
                     _Insert1(VM.OpCode.RET, null, to);
                     break;
                 case CodeEx.Pop:
@@ -513,6 +518,7 @@ namespace Neo.Compiler.MSIL
                     _ConvertStArg(src, to, src.tokenI32);
                     break;
                 //需要地址轉換的情況
+                //Need address translation 
                 case CodeEx.Br:
                 case CodeEx.Br_S:
                 case CodeEx.Leave:
@@ -743,13 +749,14 @@ namespace Neo.Compiler.MSIL
                     break;
 
                 //用上一个参数作为数量，new 一个数组
+                //With a parameter as the number of new an array
                 case CodeEx.Newarr:
                     skipcount = _ConvertNewArr(method, src, to);
                     break;
 
 
                 //array
-                case CodeEx.Ldelem_U1://用意为byte[] 取一部分.....
+                case CodeEx.Ldelem_U1://用意为byte[] 取一部分..... The meaning of byte[] take part
                     _ConvertPush(1, src, to);
                     _Convert1by1(VM.OpCode.SUBSTR, null, to);
                     break;
@@ -790,6 +797,7 @@ namespace Neo.Compiler.MSIL
                 case CodeEx.Unbox_Any:
                 case CodeEx.Break:
                 //也有可能以后利用这个断点调试
+                //It is also possible to debug this breakpoint later
                 case CodeEx.Conv_I:
                 case CodeEx.Conv_I1:
                 case CodeEx.Conv_I2:
@@ -824,7 +832,9 @@ namespace Neo.Compiler.MSIL
 
                 ///////////////////////////////////////////////
                 //以下因为支持结构体而出现
+                //The following because of the support structure appeared
                 //加载一个引用，这里改为加载一个pos值
+                //Load a reference, here to load a pos value
                 case CodeEx.Ldloca:
                 case CodeEx.Ldloca_S:
                     _ConvertLdLocA(method, src, to, src.tokenI32);
@@ -848,6 +858,7 @@ namespace Neo.Compiler.MSIL
                         _Convert1by1(VM.OpCode.NOP, src, to);
                         var d = src.tokenUnknown as Mono.Cecil.FieldDefinition;
                         //如果是readonly，可以pull个常量上来的
+                        //If it is readonly, you can pull a constant up
                         if (
                             ((d.Attributes & Mono.Cecil.FieldAttributes.InitOnly) > 0) &&
                             ((d.Attributes & Mono.Cecil.FieldAttributes.Static) > 0)
@@ -884,6 +895,7 @@ namespace Neo.Compiler.MSIL
 
 
                         //如果是调用event导致的这个代码，只找出他的名字
+                        //If it is caused by the call event code, only to find out his name
                         if (d.DeclaringType.HasEvents)
                         {
                             foreach (var ev in d.DeclaringType.Events)
@@ -909,7 +921,7 @@ namespace Neo.Compiler.MSIL
                     break;
                 case CodeEx.Throw:
                     {
-                        _Convert1by1(VM.OpCode.THROW, src, to);//throw 会让vm 挂起
+                        _Convert1by1(VM.OpCode.THROW, src, to);//throw 会让vm 挂起  - throw will make vm hang
                         //不需要再插入return
                         //_Insert1(VM.OpCode.RET, "", to);
                     }

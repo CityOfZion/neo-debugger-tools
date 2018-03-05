@@ -1,4 +1,5 @@
-﻿using Neo.VM;
+﻿using Neo.Cryptography;
+using Neo.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -151,6 +152,13 @@ namespace Neo.Emulator
                 : (w < 1 << 21 ? (w < 1 << 20 ? 20 : 21) : (w < 1 << 22 ? 22 : 23))) : (w < 1 << 27
                 ? (w < 1 << 25 ? (w < 1 << 24 ? 24 : 25) : (w < 1 << 26 ? 26 : 27))
                 : (w < 1 << 29 ? (w < 1 << 28 ? 28 : 29) : (w < 1 << 30 ? 30 : 31)))));
+        }
+
+        public static byte[] AddressToScriptHash(string s)
+        {
+            var bytes = s.Base58CheckDecode();
+            var data = bytes.Skip(1).Take(20).ToArray();
+            return data;
         }
 
         internal static int GetBitLength(this BigInteger i)

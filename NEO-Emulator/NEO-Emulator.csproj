@@ -147,9 +147,6 @@
     <Reference Include="Microsoft.Net.Http.Headers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Net.Http.Headers.2.0.0\lib\netstandard2.0\Microsoft.Net.Http.Headers.dll</HintPath>
     </Reference>
-    <Reference Include="Neo.VM, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Neo.VM.2.0.4\lib\net461\Neo.VM.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -257,7 +254,9 @@
     <Compile Include="Dissambler\NeoDebugMap.cs" />
     <Compile Include="Dissambler\NeoDisassembler.cs" />
     <Compile Include="NeoEmulator.cs" />
+    <Compile Include="Profiler\ProfilerContext.cs" />
     <Compile Include="StorageContext.cs" />
+    <Compile Include="TestCases.cs" />
     <Compile Include="TriggerType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\StringUtils.cs" />
@@ -279,6 +278,7 @@
     <Compile Include="VM\Types\ByteArray.cs" />
     <Compile Include="VM\Types\Integer.cs" />
     <Compile Include="VM\Types\InteropInterface.cs" />
+    <Compile Include="VM\Types\Map.cs" />
     <Compile Include="VM\Types\Struct.cs" />
     <Compile Include="VM\VMState.cs" />
   </ItemGroup>

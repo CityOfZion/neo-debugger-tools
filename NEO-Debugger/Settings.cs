@@ -11,6 +11,8 @@ namespace Neo.Debugger
         public string lastOpenedFile;
         public string lastPrivateKey;
 
+        public string lastFunction;
+
         public Dictionary<string, string> lastParams = new Dictionary<string, string>();
 
         private string fileName;

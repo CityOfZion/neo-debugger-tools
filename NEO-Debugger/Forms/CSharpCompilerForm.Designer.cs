@@ -28,7 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CSharpCompilerForm));
+            this.sourceCodeText = new System.Windows.Forms.TextBox();
             this.compileBtn = new System.Windows.Forms.Button();
             this.debugBtn = new System.Windows.Forms.Button();
             this.listBox1 = new System.Windows.Forms.ListBox();
@@ -36,13 +37,14 @@
             this.outputNameText = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // textBox1
+            // sourceCodeText
             // 
-            this.textBox1.Location = new System.Drawing.Point(12, 12);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(944, 415);
-            this.textBox1.TabIndex = 0;
+            this.sourceCodeText.Location = new System.Drawing.Point(12, 12);
+            this.sourceCodeText.Multiline = true;
+            this.sourceCodeText.Name = "sourceCodeText";
+            this.sourceCodeText.Size = new System.Drawing.Size(944, 415);
+            this.sourceCodeText.TabIndex = 0;
+            this.sourceCodeText.Text = resources.GetString("sourceCodeText.Text");
             // 
             // compileBtn
             // 
@@ -99,7 +101,7 @@
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.debugBtn);
             this.Controls.Add(this.compileBtn);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.sourceCodeText);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "CSharpCompilerForm";
@@ -115,7 +117,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox sourceCodeText;
         private System.Windows.Forms.Button compileBtn;
         private System.Windows.Forms.Button debugBtn;
         private System.Windows.Forms.ListBox listBox1;

@@ -70,7 +70,9 @@ Currently the only way to generate a `.neomap` file is to compile the smart cont
 | F10           | Steps through the smart contract          |                                               |
 | F12           | Toggles between assembly and source code  | Only works when a `.neomap` file is available |
 
-### Smart Contract Inputs
+## Smart Contract Inputs
+
+### ABI files
 
 A single smart contract can have different results and behaviours, depending on the inputs passed to it.
 
@@ -137,6 +139,30 @@ In order to insert strings as inputs put quotes around them (eg: "hello").
 
 For arrays separate each element with commas and put everything into brackets (eg: [2, 3, 5]). For byte arrays, you can also just insert a single hexadecimal string (eg: FF03DA22)
 
+### Test cases
+
+When debugging a contract, it is also convenient to be able to specify a pre-defined set of test inputs. Currently this is supported via a `.test.json` file that resides in the same folder as the debugger executable.
+
+This file should have the same name as the `.avm` file. So if your contract file is `hello.avm`, make sure the input file is called `hello.test.json`.
+
+Here's a example of how to specify test cases.
+
+```javascript
+{
+	"cases": [
+		{
+			"name": "add(5,3)",
+			"method": "Main",
+			"params": ["add", [5, 3]]
+		},
+		{
+			"name": "sub(7,2)",
+			"method": "Main",
+			"params": ["sub", [7, 2]]
+		},
+	]				
+}
+```
 
 ### Storage Emulation
 

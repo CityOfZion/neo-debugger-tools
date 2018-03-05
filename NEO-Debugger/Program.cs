@@ -9,11 +9,9 @@ namespace Neo.Debugger {
 		/// </summary>
 		[STAThread]
 		static void Main(string[] args) {
-
-            MainForm.targetAVMPath = args.Length > 0 ? args[0] : null;
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new MainForm());
+			Application.Run(new MainForm(args.Length > 0 ? args[0] : null));
 		}
 	}
 }

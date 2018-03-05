@@ -30,7 +30,7 @@ namespace Neo.VM.Types
             throw new NotSupportedException();
         }
 
-        public override T GetInterface<T>()
+        public T GetInterface<T>() where T : class, IInteropInterface
         {
             return _object as T;
         }

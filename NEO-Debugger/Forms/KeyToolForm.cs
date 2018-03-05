@@ -75,13 +75,23 @@ namespace Neo.Debugger.Forms
 
             keyDataGrid.Rows.Clear();
 
+            var scriptHash = Emulator.Helper.AddressToScriptHash(keyPair.address);
+
             keyDataGrid.Rows.Add(new object[] { "Address", keyPair.address });
-            keyDataGrid.Rows.Add(new object[] { "Script Hash (RAW, hex) ", keyPair.signatureHash.ToArray().ToHexString() });
-            keyDataGrid.Rows.Add(new object[] { "Script Hash (RAW, bytes) ", ToByteArray(keyPair.signatureHash.ToArray()) });
+            keyDataGrid.Rows.Add(new object[] { "Script Hash (RAW, hex) ", scriptHash.ToHexString() });
+            keyDataGrid.Rows.Add(new object[] { "Script Hash (RAW, bytes) ", ToByteArray(scriptHash) });
             keyDataGrid.Rows.Add(new object[] { "Public Key (RAW, hex)", keyPair.PublicKey.ToHexString() });
             keyDataGrid.Rows.Add(new object[] { "Private Key (RAW, hex)", keyPair.PrivateKey.ToHexString() });
             keyDataGrid.Rows.Add(new object[] { "Private Key (WIF, hex)", keyPair.WIF });
             keyDataGrid.Rows.Add(new object[] { "Private Key (RAW, bytes)", ToByteArray(keyPair.PrivateKey) });
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var bytes = new byte[32];
+            var rnd = new Random();
+            rnd.NextBytes(bytes);
+            keyBox.Text = bytes.ToHexString();
         }
     }
 }

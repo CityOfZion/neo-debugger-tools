@@ -130,12 +130,12 @@ namespace Neo.Emulator.API
 
             //returns byte[]
 
-            var context = engine.EvaluationStack.Pop();
-            var item = (VM.Types.ByteArray) engine.EvaluationStack.Pop();
-
+            var obj = engine.EvaluationStack.Pop();
+            var item = engine.EvaluationStack.Pop();
+            
             var key = item.GetByteArray();
 
-            var storage = context.GetInterface<Storage>();
+            var storage = ((VM.Types.InteropInterface)obj).GetInterface<Storage>();
             var data = storage.Read(key);
 
             var result = new VM.Types.ByteArray(data);
@@ -160,14 +160,14 @@ namespace Neo.Emulator.API
             //StorageContext context, string key, string value
             // return void
 
-            var context = engine.EvaluationStack.Pop();
+            var obj = engine.EvaluationStack.Pop();
             var keyItem = engine.EvaluationStack.Pop();
             var dataItem = engine.EvaluationStack.Pop();
 
             var key = keyItem.GetByteArray();
             var data = dataItem.GetByteArray();
 
-            var storage = context.GetInterface<Storage>();
+            var storage = ((VM.Types.InteropInterface)obj).GetInterface<Storage>();
             storage.Write(key, data);
 
             return true;

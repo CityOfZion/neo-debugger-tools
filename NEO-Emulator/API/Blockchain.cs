@@ -49,7 +49,7 @@ namespace Neo.Emulator.API
                 if (child.Name.Equals("block"))
                 {
                     uint index = (uint)(blocks.Count + 1);
-                    var block = new Block(index);
+                    var block = new Block(index, 0);
                     if (block.Load(child))
                     {
                         blocks[index] = block;
@@ -149,8 +149,7 @@ namespace Neo.Emulator.API
                 if (height <= blockchain.currentHeight)
                 {
                     uint index = height + 1;
-                    block = new Block(index);
-                    block.timestamp = 1506787300;
+                    block = new Block(index, 1506787300);
                     blockchain.blocks[index] = block;
                 }
             }

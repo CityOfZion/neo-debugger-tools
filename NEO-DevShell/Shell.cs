@@ -167,7 +167,7 @@ namespace NEO_DevShell
             var storage = Shell.debugger.currentAddress.storage;
             foreach (var entry in storage.entries)
             {
-                Shell.Write(FormattingUtils.OutputData(entry.Key, false) + " => "+ FormattingUtils.OutputData(entry.Value, false, true));
+                Shell.Write(FormattingUtils.OutputData(entry.Key, false) + " => "+ FormattingUtils.OutputData(entry.Value, false));
             }
         }
     }

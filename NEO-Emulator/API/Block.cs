@@ -10,13 +10,15 @@ namespace Neo.Emulator.API
         public uint height;
         public List<Transaction> transactions = new List<Transaction>();
 
-        public Block(uint height)
+        public Block(uint height, uint timestamp) : base(timestamp)
         {
             this.height = height;
         }
 
         internal bool Load(DataNode root)
         {
+            this.timestamp = root.GetUInt32("timestamp");
+
             this.transactions.Clear();
 
             foreach (var child in root.Children)
@@ -39,6 +41,9 @@ namespace Neo.Emulator.API
             {
                 result.AddNode(tx.Save());
             }
+
+            result.AddField("timestamp", timestamp);
+
             return result;
         }
 
@@ -46,7 +51,7 @@ namespace Neo.Emulator.API
         public bool GetTransactionCount(ExecutionEngine engine)
         {
             var obj = engine.EvaluationStack.Pop();
-            var block = obj.GetInterface<Block>();
+            var block = ((VM.Types.InteropInterface)obj).GetInterface<Block>();
 
             if (block == null)
                 return false;
@@ -59,7 +64,7 @@ namespace Neo.Emulator.API
         public bool GetTransactions(ExecutionEngine engine)
         {
             var obj = engine.EvaluationStack.Pop();
-            var block = obj.GetInterface<Block>();
+            var block = ((VM.Types.InteropInterface)obj).GetInterface<Block>();
 
             if (block == null)
                 return false;
@@ -84,7 +89,7 @@ namespace Neo.Emulator.API
         {
             var index = (int)engine.EvaluationStack.Pop().GetBigInteger();
             var obj = engine.EvaluationStack.Pop();
-            var block = obj.GetInterface<Block>();
+            var block = ((VM.Types.InteropInterface)obj).GetInterface<Block>();
 
             if (block == null)
                 return false;

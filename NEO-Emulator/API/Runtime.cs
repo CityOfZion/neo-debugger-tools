@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using Neo.Cryptography;
+using System.Collections;
 
 namespace Neo.Emulator.API
 {
@@ -20,6 +21,16 @@ namespace Neo.Emulator.API
             TriggerType result = emulator.currentTrigger;
 
             engine.EvaluationStack.Push((int)result);
+            return true;
+        }
+
+        [Syscall("Neo.Runtime.GetTime")]
+        public static bool GetTime(ExecutionEngine engine)
+        {
+            var emulator = engine.GetEmulator();
+            uint result = emulator.timestamp;
+
+            engine.EvaluationStack.Push(result);
             return true;
         }
 
@@ -81,7 +92,7 @@ namespace Neo.Emulator.API
                 matchType += " / Forced";
             }
 
-            DoLog($"Checking Witness [{matchType}]: {hashOrPubkey.ByteToHex()} => {result}");
+            DoLog($"Checking Witness [{matchType}]: {FormattingUtils.OutputData(hashOrPubkey, false, null)} => {result}");
 
             engine.EvaluationStack.Push(new VM.Types.Boolean(result));
             return true;
@@ -93,15 +104,15 @@ namespace Neo.Emulator.API
             //params object[] state
             var something = engine.EvaluationStack.Pop();
 
-            if (something.IsArray)
+            if (something is ICollection)
             {
                 var sb = new StringBuilder();
 
-                var items = something.GetArray();
+                var items = (ICollection)something;
 
                 int index = 0;
 
-                foreach (var item in items)
+                foreach (StackItem item in items)
                 {
                     if (index > 0)
                     {

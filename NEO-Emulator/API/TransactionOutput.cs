@@ -1,34 +1,53 @@
 ﻿using LunarParser;
 using Neo.Emulator.Utils;
 using Neo.VM;
+using Neo.Cryptography;
 using System.Numerics;
 
 namespace Neo.Emulator.API
 {
     public class TransactionOutput : IApiInterface, IInteropInterface
     {
-        public byte[] id;
-        public BigInteger ammount;
-        public byte[] hash;
+        public readonly byte[] assetID;
+        public readonly BigInteger amount;
+        public UInt160 hash;
 
-        internal void Load(DataNode root)
+        public TransactionOutput(byte[] assetID, BigInteger amount, UInt160 hash)
+        {
+            if (hash == null || assetID == null)
+            {
+                throw new System.Exception("Unexpected null");
+            }
+
+            this.assetID = assetID;
+            this.amount = amount;
+            this.hash = hash;
+        }
+
+        internal static TransactionOutput FromNode(DataNode root)
         {
             var hex = root.GetString("id");
-            this.id = hex.HexToByte();
+            var assetID = hex.HexToByte();
 
             hex = root.GetString("hash");
-            this.hash = hex.HexToByte();
+            UInt160 hash;
+            if (!UInt160.TryParse(hex, out hash))
+            {
+                hash = new UInt160(new byte[20]);
+            }
 
-            var amm = root.GetString("ammount");
-            this.ammount = BigInteger.Parse(amm);
+            var amm = root.GetString("amount", "1");
+            var amount = BigInteger.Parse(amm);
+
+            return new TransactionOutput(assetID, amount, hash);
         }
 
         public DataNode Save()
         {
             var result = DataNode.CreateObject("output");
-            result.AddField("id", this.id.ByteToHex());
-            result.AddField("hash", this.hash.ByteToHex());
-            result.AddField("ammount", this.ammount.ToString());
+            result.AddField("id", this.assetID.ByteToHex());
+            result.AddField("hash", this.hash.ToString());
+            result.AddField("amount", this.amount.ToString());
             return result;
         }
 
@@ -44,7 +63,7 @@ namespace Neo.Emulator.API
 
             var tx = obj.GetInterface<TransactionOutput>();
 
-            engine.EvaluationStack.Push(tx.id);
+            engine.EvaluationStack.Push(tx.assetID);
             return true;
         }
 
@@ -60,7 +79,7 @@ namespace Neo.Emulator.API
 
             var tx = obj.GetInterface<TransactionOutput>();
 
-            engine.EvaluationStack.Push(tx.ammount);
+            engine.EvaluationStack.Push(tx.amount);
             return true;
         }
 
@@ -75,7 +94,7 @@ namespace Neo.Emulator.API
             }
 
             var tx = obj.GetInterface<TransactionOutput>();
-            engine.EvaluationStack.Push(tx.hash);
+            engine.EvaluationStack.Push(tx.hash.ToArray());
 
             /*var debugger = engine.ScriptContainer as NeoDebugger;
 

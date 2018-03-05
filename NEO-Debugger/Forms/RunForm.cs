@@ -1,11 +1,15 @@
 ﻿using LunarParser;
 using LunarParser.JSON;
 using Neo.Cryptography;
+using Neo.Debugger.Models;
+using Neo.Debugger.Utils;
 using Neo.Emulator;
 using Neo.Emulator.API;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Windows.Forms;
 
@@ -13,13 +17,38 @@ namespace Neo.Debugger.Forms
 {
     public partial class RunForm : Form
     {
-        public MainForm mainForm;
-        public NeoEmulator emulator;
-        public ABI abi;
+        private ABI _abi;
+        private TestSuite _testSuite;
+        private string currentContractName = "";
+        private bool editMode = false;
+        private int editRow;
 
-        public RunForm()
+        public AVMFunction currentMethod { get; private set; }
+
+        private DebugParameters _debugParameters;
+        public DebugParameters DebugParameters
+        {
+            get
+            {
+                return _debugParameters;
+            }
+        }
+
+        private string _defaultPrivateKey;
+        private Dictionary<string, string> _defaultParams;
+
+        public RunForm(ABI abi, TestSuite tests, string contractName, string defaultPrivateKey, Dictionary<string,string> defaultParams, string defaultFunction)
         {
             InitializeComponent();
+            _testSuite = tests;
+            _abi = abi;
+            currentContractName = contractName;
+
+            //Defaults.
+            if (defaultPrivateKey != null)
+                _defaultPrivateKey = defaultPrivateKey;
+            if (defaultParams != null)
+                _defaultParams = defaultParams;
 
             assetComboBox.Items.Clear();
             assetComboBox.Items.Add("None");
@@ -31,145 +60,61 @@ namespace Neo.Debugger.Forms
 
             triggerComboBox.SelectedIndex = 0;
             witnessComboBox.SelectedIndex = 0;
-        }
 
-        private AVMFunction currentMethod;
+            paramsList.Items.Clear();
 
-        private void LoadFunction(string key)
-        {
-            if (abi.functions.ContainsKey(key))
+            foreach (var f in _abi.functions.Values)
             {
-                currentMethod = abi.functions[key];
-
-                inputGrid.Rows.Clear();
-
-                if (currentMethod.inputs != null)
-                {
-                    foreach (var p in currentMethod.inputs)
-                    {
-                        var param_key = (currentContractName + "_" + currentMethod.name + "_" + p.name).ToLower();
-                        object val = "";
-
-                        bool isEmpty = true;
-
-                        if (mainForm.settings.lastParams.ContainsKey(param_key))
-                        {
-                            val = mainForm.settings.lastParams[param_key];
-                            isEmpty = false;
-                        }
-
-                        inputGrid.Rows.Add(new object[] { p.name, val });
-
-                        int rowIndex = inputGrid.Rows.Count - 1;
-
-                        if (isEmpty)
-                        {
-                            EnablePlaceholderText(rowIndex, 1, p);
-                        }
-                    }
-                }
-
-                button1.Enabled = true;
-            }
-        }
-
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var key = paramsList.Text;
-            LoadFunction(key);
-        }
-
-        private void ResetTabs()
-        {
-            this.runTabs.SelectedTab = methodTab;
-        }
-
-        public static bool IsValidWallet(string address)
-        {
-            if (string.IsNullOrEmpty(address) || address[0]!='A')
-            {
-                return false;
+                paramsList.Items.Add(f.name);
             }
 
-            try
+            if (string.IsNullOrEmpty(defaultFunction))
             {
-                var buffer = address.Base58CheckDecode();
-                return buffer != null && buffer.Length > 0;
+                defaultFunction = _abi.entryPoint.name;
             }
-            catch
+            
+            int mainItem = paramsList.FindString(defaultFunction);
+            if (mainItem >= 0) paramsList.SetSelected(mainItem, true);
+            
+            testCasesList.Items.Clear();
+            foreach (var entry in _testSuite.cases.Keys)
             {
-                return false;
+                testCasesList.Items.Add(entry);
             }
-
-        }
-
-        private bool IsHex(string chars)
-        {
-            if (string.IsNullOrEmpty(chars)) return false;
-            if (chars.Length % 2 != 0) return false;
-
-            bool isHex;
-            foreach (var c in chars)
-            {
-                isHex = ((c >= '0' && c <= '9') ||
-                         (c >= 'a' && c <= 'f') ||
-                         (c >= 'A' && c <= 'F'));
-
-                if (!isHex)
-                    return false;
-            }
-            return true;
-        }
-
-        private void ShowArgumentError(AVMFunction f, int index, object val)
-        {
-            string error;
-
-            if (val == null || string.IsNullOrEmpty(val.ToString()))
-            {
-                error = "Missing";
-            }
-            else
-            {
-                error = "Invalid format in ";
-            }
-
-            MessageBox.Show($"{error} argument #{index+1} (\"{f.inputs[index].name}\") of {f.name} method");
-            ResetTabs();
-        }
-
-        private string BytesToString(byte[] bytes)
-        {
-            var s = "";
-            foreach (var b in bytes)
-            {
-                if (s.Length > 0) s += ",";
-                s += b.ToString();
-            }
-            s = $"[{s}]";
-            return s;
         }
 
         private bool InitInvoke()
         {
-
             var key = paramsList.Text;
-            var f = abi.functions[key];
+            var f = _abi.functions[key];
 
+            _debugParameters = new DebugParameters();
+
+            //Get the private key used
+            _debugParameters.PrivateKey = privateKeyInput.Text;
+
+            //Get the witness mode
+            CheckWitnessMode witnessMode;
             var ws = witnessComboBox.SelectedItem.ToString().Replace(" ", "");
-            if (!Enum.TryParse<CheckWitnessMode>(ws, out emulator.checkWitnessMode))
+
+            if (!Enum.TryParse<CheckWitnessMode>(ws, out witnessMode))
             {
                 return false;
             }
+            _debugParameters.WitnessMode = witnessMode;
 
+            //Get the trigger type
+            TriggerType type;
             var ts = triggerComboBox.SelectedItem.ToString().Replace(" ", "");
-            if (!Enum.TryParse<TriggerType>(ts, out emulator.currentTrigger))
+
+            if (!Enum.TryParse<TriggerType>(ts, out type))
             {
                 return false;
             }
-
+            _debugParameters.TriggerType = type;
+            
+            //Get the arguments list
             var argList = "";
-
             if (f.inputs != null)
             {
                 int index = 0;
@@ -198,7 +143,8 @@ namespace Neo.Debugger.Forms
                     if (val != null && !val.Equals(""))
                     {
                         var param_key = (currentContractName + "_" + f.name + "_" + p.name).ToLower();
-                        mainForm.settings.lastParams[param_key] = val.ToString();
+                        //Add our default running parameters for next time
+                        _debugParameters.DefaultParams[param_key] = val.ToString();
                     }
 
                     if (index > 0)
@@ -215,18 +161,26 @@ namespace Neo.Debugger.Forms
                             val = s;
                         }
                         else
-                        if (IsHex(s))
+                        if (s.StartsWith("\"") && s.EndsWith("\""))
                         {
-                            var bytes = s.HexToBytes();
-                            s = BytesToString(bytes);
-                        }
-                        else
-                        if (IsValidWallet(s))
-                        {
-                            var bytes = s.Base58CheckDecode();
-                            var scriptHash = Crypto.Default.ToScriptHash(bytes);
-                            bytes = scriptHash.ToArray();
-                            s = BytesToString(bytes);
+                            s = s.Substring(1, s.Length - 2);
+                            if (Util.IsHex(s))
+                            {
+                                var bytes = s.HexToBytes();
+                                s = Util.BytesToString(bytes);
+                            }
+                            else if (Util.IsValidWallet(s))
+                            {
+                                var scriptHash = Emulator.Helper.AddressToScriptHash(s);
+                                s = Util.BytesToString(scriptHash);
+                            }
+                            else
+                            {
+                                ShowArgumentError(f, index, val);
+                                return false;
+                            }
+
+                            val = $"[{s}]";
                         }
                         else
                         {
@@ -284,8 +238,7 @@ namespace Neo.Debugger.Forms
                     index++;
                 }
             }
-
-            if (key != abi.entryPoint.name)
+            if (key != _abi.entryPoint.name)
             {
                 if (f.inputs == null || f.inputs.Length == 0)
                 {
@@ -295,19 +248,10 @@ namespace Neo.Debugger.Forms
                 argList = $"\"{operation}\", {argList}";
             }
 
-            string json = "{\"params\": [" + argList + "]}";
-
-            if (string.IsNullOrEmpty(json))
-            {
-                MessageBox.Show("Invalid input!");
-                return false;
-            }
-
-            DataNode node;
-
+            //Set the arguments list
             try
             {
-                node = JSONReader.ReadFromString(json);
+                _debugParameters.ArgList = Util.GetArgsListAsNode(argList);
             }
             catch
             {
@@ -315,22 +259,21 @@ namespace Neo.Debugger.Forms
                 ResetTabs();
                 return false;
             }
-
-            var items = node.GetNode("params");
-
+            
             if (assetComboBox.SelectedIndex > 0)
             {
                 foreach (var entry in Asset.Entries)
                 {
                     if (entry.name == assetComboBox.SelectedItem.ToString())
                     {
-                        BigInteger ammount;
-
-                        BigInteger.TryParse(assetAmount.Text, out ammount);
-
-                        if (ammount > 0)
+                        BigInteger amount;
+                        BigInteger.TryParse(assetAmount.Text, out amount);
+                        if (amount > 0)
                         {
-                            emulator.SetTransaction(entry.id, ammount);
+                            amount *= 100000000; // fix decimals
+
+                            //Add the transaction info
+                            _debugParameters.Transaction.Add(entry.id, amount);
                         }
                         else
                         {
@@ -343,43 +286,21 @@ namespace Neo.Debugger.Forms
                 }
             }
 
-            emulator.Reset(items);
-
-            mainForm.settings.Save();
+            uint timestamp;
+            if (!uint.TryParse(timestampBox.Text, out timestamp))
+            {
+                MessageBox.Show("Invalid timestamp");
+                return false;
+            }
+            else
+            {
+                _debugParameters.Timestamp = timestamp;
+            }
 
             return true;
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (InitInvoke())
-            {
-                this.DialogResult = DialogResult.OK;
-            }
-        }
-
-        public string currentContractName = "";
-        private string lastContractName = "";
-
-        private void ReloadContract()
-        {
-            if (currentContractName == lastContractName)
-            {
-                return;
-            }
-
-            lastContractName = currentContractName;
-
-            paramsList.Items.Clear();
-
-            foreach (var f in abi.functions.Values)
-            {
-                paramsList.Items.Add(f.name);
-            }
-
-            int mainItem = paramsList.FindString(abi.entryPoint.name);
-            if (mainItem >= 0) paramsList.SetSelected(mainItem, true);
-        }
+        #region Main Form
 
         private void RunForm_Shown(object sender, EventArgs e)
         {
@@ -388,6 +309,7 @@ namespace Neo.Debugger.Forms
             inputGrid.AllowUserToAddRows = false;
 
             assetAmount.Enabled = assetComboBox.SelectedIndex > 0;
+            timestampBox.Text = Emulator.Helper.ToTimestamp(DateTime.UtcNow).ToString();
 
             if (Runtime.invokerKeys == null && File.Exists("last.key"))
             {
@@ -407,19 +329,104 @@ namespace Neo.Debugger.Forms
                 addressLabel.Text = "(No key loaded)";
             }
 
-            privateKeyInput.Text = mainForm.settings.lastPrivateKey;
-
-            ReloadContract();
+            privateKeyInput.Text = _defaultPrivateKey;
         }
-        
-        private void assetComboBox_SelectedIndexChanged(object sender, EventArgs e)
+
+        private void ResetTabs()
         {
-            assetAmount.Enabled = assetComboBox.SelectedIndex > 0;
+            this.runTabs.SelectedTab = methodTab;
+        }
+
+        #endregion
+
+        #region Input Lists Handlers
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var key = paramsList.Text;
+            LoadFunction(key);
         }
 
         private void paramsList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             button1_Click(null, null);
+        }
+
+        private void testCasesList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var key = testCasesList.Text;
+            var testCase = _testSuite.cases[key];
+            var methodName = testCase.method != null ? testCase.method : _abi.entryPoint.name;
+
+            for (int i = 0; i < paramsList.Items.Count; i++)
+            {
+                if (paramsList.Items[i].ToString() == methodName)
+                {
+                    paramsList.SelectedIndex = i;
+
+                    for (int j = 0; j < inputGrid.RowCount; j++)
+                    {
+                        string val;
+
+                        if (testCase.args != null && j < testCase.args.ChildCount)
+                        {
+                            var node = testCase.args[j];
+                            val = Util.ParseNode(node, j);
+                        }
+                        else
+                        {
+                            val = "";
+                        }
+
+                        inputGrid.Rows[j].Cells[1].Value = val;
+                        inputGrid.Rows[j].Cells[1].Style.ForeColor = Color.Black;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        private void inputGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (editMode)
+            {
+                editMode = false;
+                VerifyPlaceholderAt(editRow, 1);
+            }
+
+        }
+
+        private void inputGrid_CellLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            if (!editMode)
+            {
+                VerifyPlaceholderAt(e.RowIndex, e.ColumnIndex);
+            }
+        }
+
+        private void inputGrid_CellEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 1 && currentMethod != null)
+            {
+                var col = inputGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor;
+                if (col == Color.Gray)
+                {
+                    DisablePlaceholderText(e.RowIndex, e.ColumnIndex);
+                }
+            }
+        }
+
+        private void inputGrid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            editMode = true;
+            editRow = e.RowIndex;
+        }
+
+        private void inputGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            editMode = false;
+            VerifyPlaceholderAt(e.RowIndex, e.ColumnIndex);
         }
 
         private string ReadCellVal(int row, int col)
@@ -474,69 +481,63 @@ namespace Neo.Debugger.Forms
 
         }
 
-        private void inputGrid_CellLeave(object sender, DataGridViewCellEventArgs e)
+        private void LoadFunction(string key)
         {
-            if (!editMode)
+            if (_abi.functions.ContainsKey(key))
             {
-                VerifyPlaceholderAt(e.RowIndex, e.ColumnIndex);
-            }
-        }
+                currentMethod = _abi.functions[key];
 
-        private void inputGrid_CellEnter(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.ColumnIndex == 1 && currentMethod != null)
-            {
-                var col = inputGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor;
-                if (col == Color.Gray)
+                inputGrid.Rows.Clear();
+
+                if (currentMethod.inputs != null)
                 {
-                    DisablePlaceholderText(e.RowIndex, e.ColumnIndex);
+                    foreach (var p in currentMethod.inputs)
+                    {
+                        var param_key = (currentContractName + "_" + currentMethod.name + "_" + p.name).ToLower();
+                        object val = "";
+
+                        bool isEmpty = true;
+
+                        if (_defaultParams.ContainsKey(param_key))
+                        {
+                            val = _defaultParams[param_key];
+                            isEmpty = false;
+                        }
+
+                        inputGrid.Rows.Add(new object[] { p.name, val });
+
+                        int rowIndex = inputGrid.Rows.Count - 1;
+
+                        if (isEmpty)
+                        {
+                            EnablePlaceholderText(rowIndex, 1, p);
+                        }
+                    }
                 }
+
+                button1.Enabled = true;
             }
         }
 
-        private bool editMode = false;
-        private int editRow;
+        #endregion
 
-        private void inputGrid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
-        {
-            editMode = true;
-            editRow = e.RowIndex;
-        }
+        #region Button Click Handlers
 
-        private void inputGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            editMode = false;
-            VerifyPlaceholderAt(e.RowIndex, e.ColumnIndex);
-        }
-
-        private static KeyPair GetKeyFromString(string key)
-        {
-            if (key.Length == 52)
+            if (InitInvoke())
             {
-                return KeyPair.FromWIF(key);
-            }
-            else
-            if (key.Length == 64)
-            {
-                var keyBytes = key.HexToBytes();
-                return new KeyPair(keyBytes);
-            }
-            else
-            {
-                return null;
+                this.DialogResult = DialogResult.OK;
             }
         }
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            var keyPair = GetKeyFromString(privateKeyInput.Text);
+            var keyPair = Util.GetKeyFromString(privateKeyInput.Text);
             if (keyPair != null)
             {
                 Runtime.invokerKeys = keyPair;
                 addressLabel.Text = Runtime.invokerKeys.address;
-
-                mainForm.settings.lastPrivateKey = privateKeyInput.Text;
-                mainForm.settings.Save();
             }
             else
             {
@@ -544,14 +545,52 @@ namespace Neo.Debugger.Forms
             }
         }
 
-        private void inputGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        #endregion
+
+        #region Helpers
+
+        private void ShowArgumentError(AVMFunction f, int index, object val)
         {
-            if (editMode)
+            string error;
+
+            if (val == null || string.IsNullOrEmpty(val.ToString()))
             {
-                editMode = false;            
-                VerifyPlaceholderAt(editRow, 1);
+                error = "Missing";
+            }
+            else
+            {
+                error = "Invalid format in ";
             }
 
+            MessageBox.Show($"{error} argument #{index + 1} (\"{f.inputs[index].name}\") of {f.name} method");
+            ResetTabs();
+        }
+
+        #endregion
+
+        private bool lockDate;
+
+        private void timestampBox_TextChanged(object sender, EventArgs e)
+        {
+            if (lockDate) return;
+
+            uint timestamp;
+            if (uint.TryParse(timestampBox.Text, out timestamp))
+            {
+                dateTimePicker1.Value = Emulator.Helper.ToDateTime(timestamp);
+            }
+        }
+
+        private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
+        {
+            lockDate = true;
+            timestampBox.Text = Emulator.Helper.ToTimestamp(dateTimePicker1.Value).ToString();
+            lockDate = false;
+        }
+
+        private void assetComboBox_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+            assetAmount.Enabled = assetComboBox.SelectedIndex > 0;
         }
     }
 }

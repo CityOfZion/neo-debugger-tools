@@ -1,16 +1,17 @@
 ﻿using Neo.Emulator;
 using Neo.Emulator.API;
+using System;
 using System.Windows.Forms;
 
 namespace Neo.Debugger.Forms
 {
     public partial class BlockchainForm : Form
     {
-        public NeoEmulator debugger;
-
-        public BlockchainForm()
+        private Blockchain _blockchain;
+        public BlockchainForm(Blockchain blockchain)
         {
             InitializeComponent();
+            _blockchain = blockchain;
 
             dataGridView1.Columns.Add("Key", "Key");
             dataGridView1.Columns.Add("Value", "Value");
@@ -43,7 +44,7 @@ namespace Neo.Debugger.Forms
 
         private void BlockchainForm_Shown(object sender, System.EventArgs e)
         {
-            var blockchain = debugger.blockchain;
+            var blockchain = _blockchain;
 
             foreach (var block in blockchain.blocks.Values)
             {
@@ -78,7 +79,7 @@ namespace Neo.Debugger.Forms
 
         private Transaction FindByHash(string hash)
         {
-            var blockchain = debugger.blockchain;
+            var blockchain = _blockchain;
             foreach (var block in blockchain.blocks.Values)
             {
                 foreach (var tx in block.transactions)
@@ -121,7 +122,7 @@ namespace Neo.Debugger.Forms
             index = 0;
             foreach (var output in tx.outputs)
             {
-                dataGridView1.Rows.Add("Output #" + index, output.hash.ToHexString());
+                dataGridView1.Rows.Add("Output #" + index, output.hash.ToString());
                 index++;
             }
         }
