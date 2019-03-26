@@ -78,7 +78,7 @@ namespace NeoDebuggerUI
             }
         }
 
-        public void UpdateBreakpointMargin(HashSet<int> breakpoints, int currentLine = 0, int offset = 0, int length = 0)
+        public void UpdateBreakpointView(HashSet<int> breakpoints, int currentLine, int offset = 0, int length = 0)
         {
             BreakpointLines = breakpoints;
             if (currentLine >= 0 && currentLine != CurrentLine)
@@ -94,6 +94,27 @@ namespace NeoDebuggerUI
                 CurrentLine = currentLine;
                 SelectionStartOffset = offset;
                 SelectionEndOffset = offset + length;
+            }
+        }
+
+        public void UpdateBreakpointMargin(HashSet<int> breakpoints)
+        {
+            BreakpointLines = breakpoints;
+
+            if (CurrentLine != 0)
+            {
+                var line = TextView.GetVisualLine(CurrentLine);
+                foreach (var element in line.Elements)
+                {
+                    if(element.BackgroundBrush == BreakpointLineColor)
+                    {
+                        element.BackgroundBrush = StepLineColor;
+                    }
+                    else if (element.BackgroundBrush == StepLineColor)
+                    {
+                        element.BackgroundBrush = BreakpointLineColor;
+                    }
+                }
             }
         }
     }
