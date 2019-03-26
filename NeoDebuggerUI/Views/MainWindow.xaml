@@ -77,11 +77,14 @@
       </MenuItem>
       <MenuItem Header="Contract">
         <MenuItem Header="Run (F5)" Command="{Binding OpenRunDialog}"
+                                    CommandParameter="false"
                                     Name="RunContract"/>
         <MenuItem Header="Stop (Shift+F5)" Command="{Binding StopDebugging}"
                                            IsVisible="{Binding IsSteppingOrOnBreakpoint}"
                                            Name="StopContract"/>
-        <MenuItem Header="Step (F10)" Name="StepContract"/>
+        <MenuItem Header="Step (F10)" Command="{Binding OpenRunDialog}"
+                                      CommandParameter="true"
+                                      Name="StepContract"/>
         <MenuItem Header="Reset" IsEnabled="false" />
         <MenuItem Header="Rebuild" Command="{Binding CompileCurrentFile}"/>
         <MenuItem Header="Storage (F6)" IsEnabled="false" />

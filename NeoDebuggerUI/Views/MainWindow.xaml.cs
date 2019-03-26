@@ -42,22 +42,15 @@ namespace NeoDebuggerUI.Views
 
             MenuItem newCSharp = this.FindControl<MenuItem>("MenuItemNewCSharp");
             newCSharp.Click += async (o, e) => { await NewCSharpFile(); };
+            RenderVMStack(ViewModel.EvaluationStack, ViewModel.AltStack, ViewModel.StackIndex);
 
-            MenuItem newPython = this.FindControl<MenuItem>("MenuItemNewPython");
-            newPython.Click += async (o, e) => { await NewPythonFile(); };
-
-            MenuItem newNEP5 = this.FindControl<MenuItem>("MenuItemNewNEP5");
-            newNEP5.Click += async (o, e) => { await NewPythonFile(); };
-
-
+            this.ViewModel.EvtVMStackChanged += (eval,alt,index) => RenderVMStack(eval, alt, index);
             this.ViewModel.EvtFileChanged += (fileName) => LoadFile(fileName);
             this.ViewModel.EvtFileToCompileChanged += () => ViewModel.SaveCurrentFileWithContent(_textEditor.Text);
-            this.Activated += (o, e) => { ReloadCurrentFile(); };
-
-            RenderVMStack(ViewModel.EvaluationStack, ViewModel.AltStack, ViewModel.StackIndex);
-            this.ViewModel.EvtVMStackChanged += (eval, alt, index) => RenderVMStack(eval, alt, index);
             this.ViewModel.EvtDebugCurrentLineChanged += (isOnBreakpoint, line) => HighlightOnBreakpoint(isOnBreakpoint, line);
             this.ViewModel.EvtBreakpointStateChanged += (line, addBreakpoint) => UpdateBreakpoint(addBreakpoint, line);
+
+            SetHotKeys();
         }
 
         public async Task NewCSharpFile()
@@ -75,28 +68,11 @@ namespace NeoDebuggerUI.Views
             }
         }
 
-        public async Task NewPythonFile()
-        {
-            var dialog = new SaveFileDialog();
-            var filters = new List<FileDialogFilter>();
-            var filteredExtensions = new List<string>(new string[] { "py" });
-            var filter = new FileDialogFilter { Extensions = filteredExtensions, Name = "Python File" };
-            filters.Add(filter);
-            dialog.Filters = filters;
-            var result = await dialog.ShowAsync(this);
-            if (result != null)
-            {
-                this.ViewModel.ResetWithNewFile(result);
-            }
-        }
-
         private void LoadFile(string filename)
         {
             FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
             _textEditor.Load(fs);
         }
-
-       
 
         public void SetBreakpointState(Point clickPosition)
         {
@@ -147,23 +123,10 @@ namespace NeoDebuggerUI.Views
                 _breakpointMargin.UpdateBreakpointMargin(ViewModel.Breakpoints);
 
                 // change selection to fix gui bug to update
-                _textEditor.SelectionStart = _textEditor.CaretOffset;
-                _textEditor.SelectionLength = 1; // there must be a selection to update textview
+                _textEditor.SelectionStart = _textEditor.CaretOffset < 1 ? _textEditor.CaretOffset - 1 : _textEditor.CaretOffset + 1;
+                // there must be a modification to update textview
             }
             _textEditor.IsReadOnly = isOnBreakpoint;
-        }
-
-        private void ReloadCurrentFile() 
-        {
-            if (!string.IsNullOrEmpty(ViewModel.SelectedFile) && File.Exists(ViewModel.SelectedFile))
-            {
-                Task.Run(() => LoadFile(ViewModel.SelectedFile));
-            }
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
         }
 
         private void RenderVMStack(List<string> evalStack, List<string> altStack, int index)
@@ -175,10 +138,7 @@ namespace NeoDebuggerUI.Views
             var rowHeader = new RowDefinition { Height = new GridLength(20) };
             grid.RowDefinitions.Add(rowHeader);
 
-            var indexHeader = new TextBlock
-            {
-                Text = "Index",
-                FontWeight = FontWeight.Bold,
+            var indexHeader = new TextBlock { Text = "Index", FontWeight = FontWeight.Bold,
                 Margin = Thickness.Parse("0, 0, 5, 0")
             };
             Grid.SetRow(indexHeader, 0);
@@ -195,7 +155,7 @@ namespace NeoDebuggerUI.Views
             Grid.SetColumn(altHeader, 2);
             grid.Children.Add(altHeader);
 
-            for (int i = 0; i <= index; i++)
+            for(int i = 0; i <= index; i++)
             {
                 RenderLine(grid, i + 1, index - i, evalStack[i], altStack[i]);
             }
@@ -220,7 +180,6 @@ namespace NeoDebuggerUI.Views
             Grid.SetRow(altView, rowCount);
             Grid.SetColumn(altView, 2);
             grid.Children.Add(altView);
-
         }
 
         public void SetTip(Point mousePosition)
@@ -282,6 +241,43 @@ namespace NeoDebuggerUI.Views
             return lineStr.Substring(start, length);
         }
 
+        public void SetHotKeys()
+        {
+            var keyBindings = this.KeyBindings;
+
+            var runControl = this.FindControl<MenuItem>("RunContract");
+            var runKeyBinding = new Avalonia.Input.KeyBinding()
+            {
+                // hotkey: F5
+                Gesture = new Avalonia.Input.KeyGesture(Avalonia.Input.Key.F5),
+                Command = runControl.Command,
+                CommandParameter = runControl.CommandParameter
+            };
+            keyBindings.Add(runKeyBinding);
+
+            var stepControl = this.FindControl<MenuItem>("StepContract");
+            var stepKeyBinding = new Avalonia.Input.KeyBinding()
+            {
+                // hotkey: F10
+                Gesture = new Avalonia.Input.KeyGesture(Avalonia.Input.Key.F10),
+                Command = stepControl.Command,
+                CommandParameter = stepControl.CommandParameter
+            };
+            keyBindings.Add(stepKeyBinding);
+            
+            var stopKeyBinding = new Avalonia.Input.KeyBinding()
+            {
+                // hotkey: Shift + F5
+                Gesture = new Avalonia.Input.KeyGesture(Avalonia.Input.Key.F5, Avalonia.Input.InputModifiers.Shift),
+                Command = this.FindControl<MenuItem>("StopContract").Command
+            };
+            keyBindings.Add(stopKeyBinding);
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
 
     }
 }

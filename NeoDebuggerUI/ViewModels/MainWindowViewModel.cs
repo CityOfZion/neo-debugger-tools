@@ -12,7 +12,6 @@ using NeoDebuggerUI.Views;
 using System.Reactive;
 using NeoDebuggerCore.Utils;
 using Avalonia;
-using Neo.Debugger.Core.Utils;
 
 namespace NeoDebuggerUI.ViewModels
 {
@@ -137,15 +136,18 @@ namespace NeoDebuggerUI.ViewModels
 
         internal void ResetWithNewFile(string result)
         {
-            if (!result.EndsWith(".cs", StringComparison.Ordinal) && !result.EndsWith(".py", StringComparison.Ordinal))
+            if (!result.EndsWith(".cs", StringComparison.Ordinal))
             {
-                SendLogToPanel("File not supported. Please use .cs or .py extension.");
+                SendLogToPanel("File not supported. Please use .cs extension.");
                 return;
             }
 
             if (!File.Exists(result))
             {
-                LoadTemplate(result);
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+                var fullFilePath = Path.Combine(path, "ContractTemplate.cs");
+                var sourceCode = File.ReadAllText(fullFilePath);
+                File.WriteAllText(result, sourceCode);
             }
 
             this.ProjectFiles.Clear();
@@ -154,33 +156,15 @@ namespace NeoDebuggerUI.ViewModels
             CompileCurrentFile();
         }
 
-        private void LoadTemplate(string result)
-        {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
-            string fullFilePath = null;
-            if (result.EndsWith("cs", StringComparison.Ordinal))
-            {
-                fullFilePath = Path.Combine(path, "ContractTemplate.cs");
-            }
-            else if (result.EndsWith("py", StringComparison.Ordinal))
-            {
-                fullFilePath = Path.Combine(path, "NEP5.py");
-            }
-
-            var sourceCode = File.ReadAllText(fullFilePath);
-            File.WriteAllText(result, sourceCode);
-        }
-         
-
         //Current compiler does not support multiple files
         public void CompileCurrentFile()
         {
             EvtFileToCompileChanged?.Invoke();
             var sourceCode = File.ReadAllText(this.SelectedFile);
-            var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, LanguageSupport.DetectLanguage(this.SelectedFile), this.SelectedFile);
+            var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, Neo.Debugger.Core.Data.SourceLanguage.CSharp ,this.SelectedFile);
             if(compiled)
             {
-                DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Substring(0, this.SelectedFile.Length - 3) + ".avm");
+                DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Replace(".cs", ".avm"));
             }
         }
 
@@ -228,7 +212,7 @@ namespace NeoDebuggerUI.ViewModels
 			dialog.Filters = filters;
 			dialog.AllowMultiple = false;
 
-			var result = await dialog.ShowAsync(Application.Current.MainWindow);
+			var result = await dialog.ShowAsync(new Window());
 
 			if (result != null && result.Length > 0)
 			{
@@ -236,14 +220,14 @@ namespace NeoDebuggerUI.ViewModels
 			}
 		}
 
-		public async Task OpenRunDialog()
+		public async Task OpenRunDialog(bool stepping)
 		{
             CompileCurrentFile();
-            var modalWindow = new InvokeWindow();
+            var modalWindow = new InvokeWindow(stepping);
 
             if (!IsSteppingOrOnBreakpoint)
             {
-                var task = modalWindow.ShowDialog(Application.Current.MainWindow);
+                var task = modalWindow.ShowDialog(new Window());
                 await Task.Run(() => task.Wait());
             }
 
@@ -309,7 +293,7 @@ namespace NeoDebuggerUI.ViewModels
             }
         }
 
-        public async void StopDebugging()
+        public void StopDebugging()
         {
             if (IsSteppingOrOnBreakpoint)
             {
@@ -318,7 +302,8 @@ namespace NeoDebuggerUI.ViewModels
 
                 // not using getter because the property are updated on another thread and won't update the ui
                 IsSteppingOrOnBreakpoint = DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint;
-                await OpenGenericSampleDialog("Debug was stopped", "OK", "", false);
+
+                EvtDebugCurrentLineChanged?.Invoke(IsSteppingOrOnBreakpoint, DebuggerStore.instance.manager.CurrentLine + 1);
             }
         }
 
@@ -360,23 +345,27 @@ namespace NeoDebuggerUI.ViewModels
             EvtVMStackChanged?.Invoke(EvaluationStack, AltStack, StackIndex);
         }
 
-        public async Task LoadBlockchain()
+        public async void ResetBlockchain()
         {
-            var dialog = new OpenFileDialog();
-            var filters = new List<FileDialogFilter>();
-            var filteredExtensions = new List<string>(new string[] { "chain.json" });
-            var filter = new FileDialogFilter { Extensions = filteredExtensions, Name = "Virtual blockchain files" };
-            filters.Add(filter);
-            dialog.Filters = filters;
-            dialog.AllowMultiple = false;
-
-            var result = await dialog.ShowAsync(Application.Current.MainWindow);
-
-            if (result != null && result.Length > 0)
+            if(!DebuggerStore.instance.manager.BlockchainLoaded)
             {
-                DebuggerStore.instance.manager.Blockchain.Load(result[0]);
+                OpenGenericSampleDialog("No blockchain loaded yet!", "Ok", "", false);
+                return;
             }
-        }
 
+            if (DebuggerStore.instance.manager.Blockchain.currentHeight > 1)
+            {
+                if(!(await OpenGenericSampleDialog("The current loaded Blockchain already has some transactions.\n" +
+                    "This action can not be reversed, are you sure you want to reset it?", "Yes", "No", true)))
+                {
+                    return;
+                }
+            }
+
+            DebuggerStore.instance.manager.Blockchain.Reset();
+            DebuggerStore.instance.manager.Blockchain.Save();
+
+            SendLogToPanel("Reset to virtual blockchain at path: " + DebuggerStore.instance.manager.Blockchain.fileName);
+        }
     }
 }

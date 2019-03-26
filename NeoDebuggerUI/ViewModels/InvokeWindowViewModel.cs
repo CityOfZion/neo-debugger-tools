@@ -22,6 +22,7 @@ namespace NeoDebuggerUI.ViewModels
 
         public DataNode SelectedTestCaseParams => SelectedTestCase != null ? DebuggerStore.instance.Tests.cases[SelectedTestCase].args : null;
         public DebugParameters DebugParams { get; set; } = new DebugParameters();
+        public bool Stepping;
 
         public delegate void SelectedTestChanged(string selectedTestCase);
         public event SelectedTestChanged EvtSelectedTestCaseChanged;
@@ -154,7 +155,8 @@ namespace NeoDebuggerUI.ViewModels
 
         public InvokeWindowViewModel()
         {
-            if(DebuggerStore.instance.Tests != null && DebuggerStore.instance.Tests.cases.Count > 0) {
+            if (DebuggerStore.instance.Tests != null && DebuggerStore.instance.Tests.cases.Count > 0)
+            {
                 _selectedTestCase = DebuggerStore.instance.Tests.cases.ElementAt(0).Key;
             }
             _selectedTestSequence = null;
@@ -186,10 +188,32 @@ namespace NeoDebuggerUI.ViewModels
             selectedPrivateKeyChanged.Subscribe(time => UpdatePrivateKeyAddress());
         }
 
+        public void Step()
+        {
+            if (!DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint)
+            {
+                if (SelectedTestSequence == null)
+                {
+                    DebuggerStore.instance.manager.ConfigureDebugParameters(DebugParams);
+                }
+                else
+                {
+                    //TODO: there is no step on DebugManager for test sequences
+                    //DebuggerStore.instance.manager.RunSequence(SelectedTestSequence);
+                }
+            }
+
+            var previousLine = DebuggerStore.instance.manager.CurrentLine;
+            do
+            {
+                DebuggerStore.instance.manager.Step();
+            } while (previousLine == DebuggerStore.instance.manager.CurrentLine);
+        }
+
         public void Run()
         {
             //If the debug has started already, run with previous parameters
-            if(DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint)
+            if (DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint)
             {
                 DebuggerStore.instance.manager.Run();
             }
@@ -206,7 +230,19 @@ namespace NeoDebuggerUI.ViewModels
                     DebuggerStore.instance.manager.RunSequence(SelectedTestSequence);
                 }
             }
-            
+        }
+
+        public void RunOrStep()
+        {
+            if(Stepping)
+            {
+                Step();
+            }
+            else
+            {
+                Run();
+            }
+
             //Check if the Run or RunSequence has ended the debugging
             if (!DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint)
             {

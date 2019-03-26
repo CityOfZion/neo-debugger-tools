@@ -18,6 +18,7 @@ namespace NeoDebuggerUI
         private int SelectionEndOffset { get; set; } = 0;
 
         private IBrush BreakpointLineColor = new SolidColorBrush(Colors.PaleVioletRed);
+        private IBrush StepLineColor = new SolidColorBrush(Colors.PaleGoldenrod);
 
         public override void Render(DrawingContext drawingContext)
         {
@@ -32,32 +33,46 @@ namespace NeoDebuggerUI
                 {
                     if (BreakpointLines.Contains(line.FirstDocumentLine.LineNumber))
                     {
-                        if (line.FirstDocumentLine.LineNumber == CurrentLine)
-                        {
-                            foreach (var element in line.Elements)
-                            {
-                                if (line.Elements.Count == 1)
-                                {
-                                    element.BackgroundBrush = BreakpointLineColor;
-                                    break;
-                                }
-
-                                var elementEndOffset = element.RelativeTextOffset + element.DocumentLength;
-                                if (element.RelativeTextOffset >= SelectionStartOffset && elementEndOffset <= SelectionEndOffset)
-                                {
-                                    element.BackgroundBrush = BreakpointLineColor;
-                                }
-                            }
-                        }
-
                         var y = line.GetTextLineVisualYPosition(line.TextLines[0], VisualYPosition.TextTop);
 
                         var breakpointForm = new EllipseGeometry(new Rect((Bounds.Size.Width / 4) - 1,
-                                                    y + (Bounds.Size.Width / 4) - TextView.VerticalOffset,
-                                                    line.Height / 1.5, line.Height / 1.5));
+                                                                           y + (Bounds.Size.Width / 4) - TextView.VerticalOffset,
+                                                                           line.Height / 1.5, line.Height / 1.5));
 
                         drawingContext.DrawGeometry(new SolidColorBrush(Colors.Red),
                                                     new Pen(new SolidColorBrush(Colors.DarkSlateGray), 0.5), breakpointForm);
+                    }
+                }
+
+                var currentLine = textView.GetVisualLine(CurrentLine);
+                if (currentLine != null)
+                {
+                    IBrush highlightColor;
+
+                    if (BreakpointLines.Contains(CurrentLine))
+                    {
+                        // highlight only the text with BreakpointLineColor
+                        highlightColor = BreakpointLineColor;
+                    }
+                    else
+                    {
+                        // highlight full line with StepLineColor
+                        highlightColor = StepLineColor;
+                    }
+
+                    foreach (var element in currentLine.Elements)
+                    {
+                        if (currentLine.Elements.Count == 1)
+                        {
+                            element.BackgroundBrush = highlightColor;
+                            break;
+                        }
+
+                        var elementEndOffset = element.RelativeTextOffset + element.DocumentLength;
+                        if (element.RelativeTextOffset >= SelectionStartOffset && elementEndOffset <= SelectionEndOffset)
+                        {
+                            element.BackgroundBrush = highlightColor;
+                        }
                     }
                 }
             }

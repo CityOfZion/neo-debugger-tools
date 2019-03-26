@@ -149,7 +149,9 @@ namespace Neo.Debugger.Core.Utils
         {
             get
             {
-                return (_state.state == DebuggerState.State.Exception || _state.state == DebuggerState.State.Break);
+                return (_state.state == DebuggerState.State.Exception || _state.state == DebuggerState.State.Break
+                    || _map != null && _map.Entries != null ? _map.Entries.Select(x => x.line).Contains(_currentLine + 1) : false) 
+                    && _state.state != DebuggerState.State.Finished;
             }
         }
 
@@ -690,6 +692,9 @@ namespace Neo.Debugger.Core.Utils
             //STEP
             _state = Emulator.Step();
             UpdateState();
+
+            if (_resetFlag)
+                Reset();
         }
 
         public void UpdateState()

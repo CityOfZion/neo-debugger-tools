@@ -24,19 +24,19 @@ namespace NeoDebuggerUI.Views
 {
     public class InvokeWindow : ReactiveWindow<InvokeWindowViewModel>
     {
-        public InvokeWindow()
+        public InvokeWindow(bool stepping)
         {
             InitializeComponent();
 #if DEBUG
             this.AttachDevTools();
 #endif
-
+            ViewModel.Stepping = stepping;
             RenderTestCaseParams(ViewModel.SelectedTestCaseParams);
             RegisterInteraction();
             RegisterEventListeners();
             if(DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint)
             {
-                ViewModel.Run();
+                ViewModel.RunOrStep();
             }
         }
 
@@ -143,7 +143,7 @@ namespace NeoDebuggerUI.Views
         public void DebugPressed(string field1, string field2)
         {
             ViewModel.DebugParams.ArgList = DebuggerUtils.GetArgsListAsNode(string.Concat(field1, ",", field2));
-            ViewModel.Run();
+            ViewModel.RunOrStep();
         }
         
         public void SaveOptions()
