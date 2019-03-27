@@ -93,15 +93,11 @@ namespace NeoDebuggerUI.Views
         public void UpdateBreakpoint(bool addBreakpoint, int line)
         {
             // update ui
-            _breakpointMargin.UpdateBreakpointMargin(ViewModel.Breakpoints);
+            _breakpointMargin.UpdateBreakpointMargin(ViewModel.Breakpoints, line);
 
             // fix gui bug when inserting breakpoint in the same line of the caret
             var offset = _textEditor.Document.GetOffset(line, 0);
             _textEditor.CaretOffset = offset - 1;
-
-            // fix gui line color bug when inserting breakpoint during debug
-            var nextOffset = _textEditor.Document.GetLineByNumber(line).NextLine.Offset;
-            _textEditor.SelectionStart = nextOffset;
         }
 
         public void HighlightOnBreakpoint(bool isOnBreakpoint, int currentLine)

@@ -17,13 +17,13 @@ namespace NeoDebuggerUI
         private int SelectionStartOffset { get; set; } = 0;
         private int SelectionEndOffset { get; set; } = 0;
 
-        private IBrush BreakpointLineColor = new SolidColorBrush(Colors.PaleVioletRed);
-        private IBrush StepLineColor = new SolidColorBrush(Colors.PaleGoldenrod);
+        private IBrush BreakpointLineColor = new SolidColorBrush(Colors.Tomato);
+        private IBrush StepLineColor = new SolidColorBrush(Colors.Gold);
 
         public override void Render(DrawingContext drawingContext)
         {
-            drawingContext.FillRectangle(new SolidColorBrush(Colors.WhiteSmoke), Bounds);
-            drawingContext.DrawLine(new Pen(new SolidColorBrush(Colors.Gray), 0.5), Bounds.TopRight, Bounds.BottomRight);
+            drawingContext.FillRectangle(new SolidColorBrush(Colors.Snow), Bounds);
+            drawingContext.DrawLine(new Pen(new SolidColorBrush(Colors.LightGray), 0.5), Bounds.TopRight, Bounds.BottomRight);
 
             var textView = TextView;
             var renderSize = Bounds.Size;
@@ -97,11 +97,11 @@ namespace NeoDebuggerUI
             }
         }
 
-        public void UpdateBreakpointMargin(HashSet<int> breakpoints)
+        public void UpdateBreakpointMargin(HashSet<int> breakpoints, int newBreakpointLine)
         {
             BreakpointLines = breakpoints;
 
-            if (CurrentLine != 0)
+            if (CurrentLine != 0 && CurrentLine == newBreakpointLine)
             {
                 var line = TextView.GetVisualLine(CurrentLine);
                 foreach (var element in line.Elements)
