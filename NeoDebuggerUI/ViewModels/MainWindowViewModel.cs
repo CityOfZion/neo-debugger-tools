@@ -90,8 +90,32 @@ namespace NeoDebuggerUI.ViewModels
 
         private Unit LoadSelectedFile()
         {
-            EvtFileChanged?.Invoke(_selectedFile);
+            if (_selectedFile != null && _selectedFile.EndsWith(".avm"))
+            {
+                EvtFileChanged?.Invoke(DebuggerStore.instance.manager.AvmFilePath);
+            }
+            else
+            {
+                EvtFileChanged?.Invoke(_selectedFile);
+            }
+
             return Unit.Default;
+        }
+
+        public string DisassembleAVMFile(string avmSourceCode)
+        {
+            string content;
+            try
+            {
+                content = DebuggerStore.instance.manager.GetContentFor(SelectedFile);
+            }
+            catch
+            {
+                // SelectedFile is not the path of .avm nor a valid file path
+                content = DebuggerStore.instance.manager.GetContentFor(DebuggerStore.instance.manager.AvmFilePath);
+            }
+
+            return content;
         }
 
         public void SaveCurrentFileWithContent(string content)

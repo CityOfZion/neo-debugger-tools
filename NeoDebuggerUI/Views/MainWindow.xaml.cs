@@ -72,6 +72,12 @@ namespace NeoDebuggerUI.Views
         {
             FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
             _textEditor.Load(fs);
+
+            if (filename.EndsWith(".avm"))
+            {
+                _textEditor.Text = ViewModel.DisassembleAVMFile(_textEditor.Text);
+            }
+            _textEditor.IsReadOnly = filename.EndsWith(".avm");
         }
 
         public void SetBreakpointState(Point clickPosition)
