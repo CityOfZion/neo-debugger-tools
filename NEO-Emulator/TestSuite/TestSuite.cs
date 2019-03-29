@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LunarLabs.Parser;
 using LunarLabs.Parser.JSON;
 using Neo.Emulation;
 
@@ -28,6 +29,25 @@ namespace NEO_Emulator.SmartContractTestSuite
 				var json = File.ReadAllText(fileName);
 				LoadFromJson(json);
 			}
+		    else
+            {
+                if (cases.Count == 0) // if there are no test cases, create tests "name" and "symbol"
+                {
+                    var nullParam = DataNode.CreateArray();
+                    nullParam.AddValue(0);
+                    var nameParams = DataNode.CreateArray("params");
+                    nameParams.AddValue("name");
+                    nameParams.AddNode(nullParam);
+                    cases.Add("NEP-5_name", new TestCase("NEP-5_name", "Main", nameParams));
+                    var symbolParams = DataNode.CreateArray("params");
+                    symbolParams.AddValue("symbol");
+                    symbolParams.AddNode(nullParam);
+                    cases.Add("NEP-5_symbol", new TestCase("NEP-5_symbol", "Main", symbolParams));
+                }
+
+                var json = GenerateJson();
+                File.WriteAllText(fileName, json);
+            }
 		}
 		
 		public void LoadFromJson(string json)
@@ -52,5 +72,54 @@ namespace NEO_Emulator.SmartContractTestSuite
 				
 			}
 		}
+        
+        public string GenerateJson()
+        {
+            var node = DataNode.CreateObject();
+
+            var testCases = DataNode.CreateArray("cases");
+            foreach (var test in cases)
+            {
+                var tcase = DataNode.CreateObject();
+                tcase.AddField("name", test.Value.name);
+                tcase.AddField("method", test.Value.method);
+                tcase.AddNode(test.Value.args);
+
+                testCases.AddNode(tcase);
+            }
+            node.AddNode(testCases);
+
+            var testSequences = DataNode.CreateArray("sequences");
+            foreach (var test in sequences)
+            {
+                var tcase = DataNode.CreateObject();
+                tcase.AddField("sequenceName", test.Value.SequenceName);
+                tcase.AddField("resetBlockchain", test.Value.ResetBlockchain);
+                var items = DataNode.CreateArray("items");
+                foreach (var item in test.Value.Items)
+                {
+                    var sequenceItem = DataNode.CreateObject();
+                    if (item.TestPrivateKey != null)
+                    {
+                        sequenceItem.AddField("testPrivateKey", item.TestPrivateKey);
+                    }
+                    sequenceItem.AddField("testName", item.TestName);
+                    if(item.Result != null)
+                    {
+                        sequenceItem.AddNode(item.Result);
+                    }
+
+                    items.AddNode(sequenceItem);
+                }
+                tcase.AddNode(items);
+
+                testSequences.AddNode(tcase);
+            }
+            node.AddNode(testSequences);
+
+            var json = JSONWriter.WriteToString(node);
+
+            return json;
+        }
 	}
 }
