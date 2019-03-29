@@ -33,10 +33,7 @@ namespace NeoDebuggerUI.ViewModels
         public delegate void BreakpointStateChanged(int line, bool addBreakpoint);
         public event BreakpointStateChanged EvtBreakpointStateChanged;
 
-        public HashSet<int> Breakpoints
-        {
-            get => DebuggerStore.instance.manager.Emulator.Breakpoints.Select(x => DebuggerStore.instance.manager.ResolveLine(x, true, out _selectedFile) + 1).ToHashSet();
-        }
+        public HashSet<int> Breakpoints { get => GetBreakpointHashSet(); }
 
         private string _selectedFile;
 		public string SelectedFile
@@ -90,7 +87,14 @@ namespace NeoDebuggerUI.ViewModels
 
         private Unit LoadSelectedFile()
         {
-            if (_selectedFile != null && _selectedFile.EndsWith(".avm"))
+            if(_selectedFile == null)
+            {
+                EvtFileChanged?.Invoke(_selectedFile);
+                return Unit.Default;
+            }
+
+            //  when selected file is .avm it is not finding the avm file path
+            if (_selectedFile.EndsWith(".avm"))
             {
                 EvtFileChanged?.Invoke(DebuggerStore.instance.manager.AvmFilePath);
             }
@@ -98,18 +102,15 @@ namespace NeoDebuggerUI.ViewModels
             {
                 EvtFileChanged?.Invoke(_selectedFile);
             }
+            UpdateBreakpointView(1, false);
 
             return Unit.Default;
         }
 
         public string DisassembleAVMFile(string avmSourceCode)
         {
-            string content;
-            try
-            {
-                content = DebuggerStore.instance.manager.GetContentFor(SelectedFile);
-            }
-            catch
+            string content = null;
+            if (SelectedFile.EndsWith(".avm"))
             {
                 // SelectedFile is not the path of .avm nor a valid file path
                 content = DebuggerStore.instance.manager.GetContentFor(DebuggerStore.instance.manager.AvmFilePath);
@@ -183,12 +184,16 @@ namespace NeoDebuggerUI.ViewModels
         //Current compiler does not support multiple files
         public void CompileCurrentFile()
         {
-            EvtFileToCompileChanged?.Invoke();
-            var sourceCode = File.ReadAllText(this.SelectedFile);
-            var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, Neo.Debugger.Core.Data.SourceLanguage.CSharp ,this.SelectedFile);
-            if(compiled)
+            // when selected file is .avm it is not finding the avm file path
+            if (!SelectedFile.EndsWith(".avm"))
             {
-                DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Replace(".cs", ".avm"));
+                EvtFileToCompileChanged?.Invoke();
+                var sourceCode = File.ReadAllText(this.SelectedFile);
+                var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, Neo.Debugger.Core.Data.SourceLanguage.CSharp, this.SelectedFile);
+                if (compiled)
+                {
+                    DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Replace(".cs", ".avm"));
+                }
             }
         }
 
@@ -245,9 +250,13 @@ namespace NeoDebuggerUI.ViewModels
 		}
 
 		public async Task OpenRunDialog(bool stepping)
-		{
-            CompileCurrentFile();
-            var modalWindow = new InvokeWindow(stepping);
+        {
+            //  compiler does not support .avm
+            if (SelectedFile.EndsWith(".avm"))
+            {
+                CompileCurrentFile();
+            }
+            var modalWindow = new InvokeWindow(stepping, SelectedFile.EndsWith(".avm"));
 
             if (!IsSteppingOrOnBreakpoint)
             {
@@ -259,23 +268,50 @@ namespace NeoDebuggerUI.ViewModels
             IsSteppingOrOnBreakpoint = DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint;
             ConsumedGas = DebuggerStore.instance.UsedGasCost;
 
-            EvtDebugCurrentLineChanged?.Invoke(IsSteppingOrOnBreakpoint, DebuggerStore.instance.manager.CurrentLine + 1);
+            UpdateCurrentLineView();
+
             if (IsSteppingOrOnBreakpoint)
             {
                 UpdateStackPanel();
             }
         }
 
+        private HashSet<int> GetBreakpointHashSet()
+        {
+            //  when selected file is .avm needs to you disassembler
+            if (!SelectedFile.EndsWith(".avm"))
+            {
+                return DebuggerStore.instance.manager.Emulator.Breakpoints.Select(x => DebuggerStore.instance.manager.ResolveLine(x, true, out _selectedFile) + 1).ToHashSet();
+            }
+            return DebuggerStore.instance.manager.Emulator.Breakpoints.Select(x => DebuggerStore.instance.manager.avmDisassemble.ResolveLine(x) + 1).ToHashSet();
+        }
+
         public void AddBreakpoint(int line)
         {
-            DebuggerStore.instance.manager.AddBreakpoint(line - 1, SelectedFile);
-            EvtBreakpointStateChanged?.Invoke(line, true);
+            // SelectedFile is not the path of .avm nor a valid file path
+            if (SelectedFile.EndsWith(".avm"))
+            {
+                DebuggerStore.instance.manager.AddBreakpoint(line - 1, DebuggerStore.instance.manager.AvmFilePath);
+            }
+            else
+            {
+                DebuggerStore.instance.manager.AddBreakpoint(line - 1, SelectedFile);
+            }
+            UpdateBreakpointView(line, true);
         }
 
         public void RemoveBreakpoint(int line)
         {
-            DebuggerStore.instance.manager.RemoveBreakpoint(line - 1, SelectedFile);
-            EvtBreakpointStateChanged?.Invoke(line, false);
+            // SelectedFile is not the path of .avm nor a valid file path
+            if (SelectedFile.EndsWith(".avm"))
+            {
+                DebuggerStore.instance.manager.RemoveBreakpoint(line - 1, DebuggerStore.instance.manager.AvmFilePath);
+            }
+            else
+            {
+                DebuggerStore.instance.manager.RemoveBreakpoint(line - 1, SelectedFile);
+            }
+            UpdateBreakpointView(line, false);
         }
 
         public void SetBreakpoint(int line)
@@ -289,29 +325,37 @@ namespace NeoDebuggerUI.ViewModels
             {
                 if (DebuggerStore.instance.manager.Map != null)
                 {
-                    var entries = DebuggerStore.instance.manager.Map.Entries.Select(x => x.line);
-                    if (entries.Contains(line))
+                    if (!SelectedFile.EndsWith(".avm"))
                     {
-                        // add breakpoint in line
-                        AddBreakpoint(line);
+                        var entries = DebuggerStore.instance.manager.Map.Entries.Select(x => x.line);
+                        if (entries.Contains(line))
+                        {
+                            // add breakpoint in line
+                            AddBreakpoint(line);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                // add breakpoint in the next possible line
+                                var nextLine = entries.Where(x => x > line).Min();
+                                if (!Breakpoints.Contains(nextLine))
+                                {
+                                    AddBreakpoint(nextLine);
+                                }
+                            }
+                            catch (InvalidOperationException e)
+                            {
+                                // Min() method throws an Invalid Operation Exception cause Where() method returns an empty enumerable
+                                // entries list is empty - breakpoint won't be added
+                                Console.WriteLine(e.Message + '\n' + e.StackTrace);
+                            }
+                        }
                     }
                     else
                     {
-                        try
-                        {
-                            // add breakpoint in the next possible line
-                            var nextLine = entries.Where(x => x > line).Min();
-                            if (!Breakpoints.Contains(nextLine))
-                            {
-                                AddBreakpoint(nextLine);
-                            }
-                        }
-                        catch (InvalidOperationException e)
-                        {
-                            // Min() method throws an Invalid Operation Exception cause Where() method returns an empty enumerable
-                            // entries list is empty - breakpoint won't be added
-                            Console.WriteLine(e.Message + '\n' + e.StackTrace);
-                        }
+                        // add breakpoint in the line of the disassembled avm file
+                        AddBreakpoint(line);
                     }
                 }
             }
@@ -327,7 +371,7 @@ namespace NeoDebuggerUI.ViewModels
                 // not using getter because the property are updated on another thread and won't update the ui
                 IsSteppingOrOnBreakpoint = DebuggerStore.instance.manager.IsSteppingOrOnBreakpoint;
 
-                EvtDebugCurrentLineChanged?.Invoke(IsSteppingOrOnBreakpoint, DebuggerStore.instance.manager.CurrentLine + 1);
+                UpdateCurrentLineView();
             }
         }
 
@@ -367,6 +411,44 @@ namespace NeoDebuggerUI.ViewModels
                 index--;
             }
             EvtVMStackChanged?.Invoke(EvaluationStack, AltStack, StackIndex);
+        }
+
+        public void UpdateCurrentLineView()
+        {
+            //  when selected file is .avm needs to you disassembler
+            if (SelectedFile.EndsWith(".avm"))
+            {
+                var offset = DebuggerStore.instance.manager.Offset;
+                EvtDebugCurrentLineChanged?.Invoke(IsSteppingOrOnBreakpoint, DebuggerStore.instance.manager.avmDisassemble.ResolveLine(offset) + 1);
+            }
+            else
+            {
+                EvtDebugCurrentLineChanged?.Invoke(IsSteppingOrOnBreakpoint, DebuggerStore.instance.manager.CurrentLine + 1);
+            }
+        }
+
+        public void UpdateBreakpointView(int line, bool addBreakpoint)
+        {
+            EvtBreakpointStateChanged?.Invoke(line, addBreakpoint);
+            UpdateCurrentLineView();
+        }
+
+        public async Task LoadBlockchain()
+        {
+            var dialog = new OpenFileDialog();
+            var filters = new List<FileDialogFilter>();
+            var filteredExtensions = new List<string>(new string[] { "chain.json" });
+            var filter = new FileDialogFilter { Extensions = filteredExtensions, Name = "Virtual blockchain files" };
+            filters.Add(filter);
+            dialog.Filters = filters;
+            dialog.AllowMultiple = false;
+
+            var result = await dialog.ShowAsync(new Window());
+
+            if (result != null && result.Length > 0)
+            {
+                DebuggerStore.instance.manager.Blockchain.Load(result[0]);
+            }
         }
 
         public async void ResetBlockchain()

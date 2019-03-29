@@ -67,9 +67,8 @@ namespace NeoDebuggerUI
                             element.BackgroundBrush = highlightColor;
                             break;
                         }
-
-                        var elementEndOffset = element.RelativeTextOffset + element.DocumentLength;
-                        if (element.RelativeTextOffset >= SelectionStartOffset && elementEndOffset <= SelectionEndOffset)
+                        
+                        if (element.RelativeTextOffset >= SelectionStartOffset && element.RelativeTextOffset < SelectionEndOffset)
                         {
                             element.BackgroundBrush = highlightColor;
                         }
@@ -86,9 +85,12 @@ namespace NeoDebuggerUI
                 if (CurrentLine != 0)
                 {
                     var line = TextView.GetVisualLine(CurrentLine);
-                    foreach (var element in line.Elements)
+                    if (line != null)
                     {
-                        element.BackgroundBrush = null;
+                        foreach (var element in line.Elements)
+                        {
+                            element.BackgroundBrush = null;
+                        }
                     }
                 }
                 CurrentLine = currentLine;
@@ -104,15 +106,18 @@ namespace NeoDebuggerUI
             if (CurrentLine != 0 && CurrentLine == newBreakpointLine)
             {
                 var line = TextView.GetVisualLine(CurrentLine);
-                foreach (var element in line.Elements)
+                if (line != null)
                 {
-                    if(element.BackgroundBrush == BreakpointLineColor)
+                    foreach (var element in line.Elements)
                     {
-                        element.BackgroundBrush = StepLineColor;
-                    }
-                    else if (element.BackgroundBrush == StepLineColor)
-                    {
-                        element.BackgroundBrush = BreakpointLineColor;
+                        if (element.BackgroundBrush == BreakpointLineColor)
+                        {
+                            element.BackgroundBrush = StepLineColor;
+                        }
+                        else if (element.BackgroundBrush == StepLineColor)
+                        {
+                            element.BackgroundBrush = BreakpointLineColor;
+                        }
                     }
                 }
             }

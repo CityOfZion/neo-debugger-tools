@@ -23,6 +23,7 @@ namespace NeoDebuggerUI.ViewModels
         public DataNode SelectedTestCaseParams => SelectedTestCase != null ? DebuggerStore.instance.Tests.cases[SelectedTestCase].args : null;
         public DebugParameters DebugParams { get; set; } = new DebugParameters();
         public bool Stepping;
+        public bool UseOffset;
 
         public delegate void SelectedTestChanged(string selectedTestCase);
         public event SelectedTestChanged EvtSelectedTestCaseChanged;
@@ -203,11 +204,18 @@ namespace NeoDebuggerUI.ViewModels
                 }
             }
 
-            var previousLine = DebuggerStore.instance.manager.CurrentLine;
-            do
+            if (!UseOffset)
+            {
+                var previousLine = DebuggerStore.instance.manager.CurrentLine;
+                do
+                {
+                    DebuggerStore.instance.manager.Step();
+                } while (previousLine == DebuggerStore.instance.manager.CurrentLine);
+            }
+            else
             {
                 DebuggerStore.instance.manager.Step();
-            } while (previousLine == DebuggerStore.instance.manager.CurrentLine);
+            }
         }
 
         public void Run()

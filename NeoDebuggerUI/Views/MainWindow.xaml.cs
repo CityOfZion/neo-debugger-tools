@@ -102,8 +102,11 @@ namespace NeoDebuggerUI.Views
             _breakpointMargin.UpdateBreakpointMargin(ViewModel.Breakpoints, line);
 
             // fix gui bug when inserting breakpoint in the same line of the caret
-            var offset = _textEditor.Document.GetOffset(line, 0);
-            _textEditor.CaretOffset = offset - 1;
+            if (_textEditor.Document.GetLineByOffset(_textEditor.CaretOffset).LineNumber == line)
+            {
+                var offset = _textEditor.Document.GetOffset(line + 1, 0);
+                _textEditor.CaretOffset = offset < _textEditor.Text.Length ? offset : 0;
+            }
         }
 
         public void HighlightOnBreakpoint(bool isOnBreakpoint, int currentLine)
@@ -115,12 +118,12 @@ namespace NeoDebuggerUI.Views
 
                 var lineText = _textEditor.Document.GetText(currentDocumentLine.Offset, currentDocumentLine.Length);
                 var offset = Regex.Match(lineText, @"\S").Index;
-                var regex = Regex.Match(lineText, @"(?<=^\s*)(\S|\S\s)+(?=\s*$)").Value;
+                var regex = Regex.Match(lineText, @"(?<=^\s*)([^\s\/]|[^\s\/]\s)+(?=\s*$|\s*\/\/)").Value;
 
                 _breakpointMargin.UpdateBreakpointView(ViewModel.Breakpoints, currentLine, offset, regex.Length);
 
                 // change selection to fix gui bug to update
-                _textEditor.SelectionStart = currentDocumentLine.NextLine.Offset;
+                _textEditor.SelectionStart = currentDocumentLine.NextLine.Offset - 1;
                 _textEditor.SelectionLength = 1; // there must be a selection to update textview
 
             }
@@ -130,7 +133,7 @@ namespace NeoDebuggerUI.Views
                 _breakpointMargin.UpdateBreakpointView(ViewModel.Breakpoints, 0);
 
                 // change selection to fix gui bug to update
-                _textEditor.SelectionStart = _textEditor.CaretOffset < 1 ? _textEditor.CaretOffset - 1 : _textEditor.CaretOffset + 1;
+                _textEditor.SelectionStart = _textEditor.CaretOffset > 0 ? _textEditor.CaretOffset - 1 : 1;
                 // there must be a modification to update textview
             }
             _textEditor.IsReadOnly = isOnBreakpoint;

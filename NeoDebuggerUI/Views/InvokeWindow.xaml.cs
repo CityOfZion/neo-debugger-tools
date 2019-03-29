@@ -24,13 +24,14 @@ namespace NeoDebuggerUI.Views
 {
     public class InvokeWindow : ReactiveWindow<InvokeWindowViewModel>
     {
-        public InvokeWindow(bool stepping)
+        public InvokeWindow(bool stepping, bool useOffset)
         {
             InitializeComponent();
 #if DEBUG
             this.AttachDevTools();
 #endif
             ViewModel.Stepping = stepping;
+            ViewModel.UseOffset = useOffset;
             RenderTestCaseParams(ViewModel.SelectedTestCaseParams);
             RegisterInteraction();
             RegisterEventListeners();
