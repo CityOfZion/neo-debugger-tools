@@ -12,6 +12,7 @@ using NeoDebuggerUI.Views;
 using System.Reactive;
 using NeoDebuggerCore.Utils;
 using Avalonia;
+using Neo.Debugger.Core.Utils;
 
 namespace NeoDebuggerUI.ViewModels
 {
@@ -186,10 +187,10 @@ namespace NeoDebuggerUI.ViewModels
             {
                 EvtFileToCompileChanged?.Invoke();
                 var sourceCode = File.ReadAllText(this.SelectedFile);
-                var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, Neo.Debugger.Core.Data.SourceLanguage.CSharp, this.SelectedFile);
+                var compiled = DebuggerStore.instance.manager.CompileContract(sourceCode, LanguageSupport.DetectLanguage(this.SelectedFile), this.SelectedFile);
                 if (compiled)
                 {
-                    DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Replace(".cs", ".avm"));
+                    DebuggerStore.instance.manager.LoadContract(this.SelectedFile.Replace(LanguageSupport.GetExtension(LanguageSupport.DetectLanguage(this.SelectedFile)), ".avm"));
                 }
             }
         }
@@ -295,7 +296,7 @@ namespace NeoDebuggerUI.ViewModels
         private HashSet<int> GetBreakpointHashSet()
         {
             //  when selected file is .avm needs to you disassembler
-            if (!SelectedFile.EndsWith(".avm"))
+            if (!SelectedFile.EndsWith(".avm", StringComparison.Ordinal))
             {
                 return DebuggerStore.instance.manager.Emulator.Breakpoints.Select(x => DebuggerStore.instance.manager.ResolveLine(x, true, out _selectedFile) + 1).ToHashSet();
             }

@@ -400,7 +400,14 @@ namespace Neo.Emulation
                 usedGas += opCost;
                 usedOpcodeCount++;
                 
-                OnStep?.Invoke(new EmulatorStepInfo() { byteCode = engine.CurrentContext.Script, offset = engine.CurrentContext.InstructionPointer, opcode = opcode, gasCost = opCost, sysCall = null }); //opcode == OpCode.SYSCALL? engine.lastSysCall : null
+                OnStep?.Invoke(new EmulatorStepInfo() 
+                { 
+                    byteCode = engine.CurrentContext.Script, 
+                    offset = engine.CurrentContext.InstructionPointer, 
+                    opcode = opcode, 
+                    gasCost = opCost, 
+                    sysCall = null 
+                 }); //opcode == OpCode.SYSCALL? engine.lastSysCall : null
             }
             catch
             {
