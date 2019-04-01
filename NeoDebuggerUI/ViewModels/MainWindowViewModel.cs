@@ -161,18 +161,15 @@ namespace NeoDebuggerUI.ViewModels
 
         internal void ResetWithNewFile(string result)
         {
-            if (!result.EndsWith(".cs", StringComparison.Ordinal))
+            if (!result.EndsWith(".cs", StringComparison.Ordinal) && !result.EndsWith(".py", StringComparison.Ordinal))
             {
-                SendLogToPanel("File not supported. Please use .cs extension.");
+                SendLogToPanel("File not supported. Please use .cs or .py extension.");
                 return;
             }
 
             if (!File.Exists(result))
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
-                var fullFilePath = Path.Combine(path, "ContractTemplate.cs");
-                var sourceCode = File.ReadAllText(fullFilePath);
-                File.WriteAllText(result, sourceCode);
+                LoadTemplate(result);
             }
 
             this.ProjectFiles.Clear();
@@ -196,6 +193,25 @@ namespace NeoDebuggerUI.ViewModels
                 }
             }
         }
+
+        private void LoadTemplate(string result)
+        {
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+            string fullFilePath = null;
+            if (result.EndsWith("cs", StringComparison.Ordinal))
+            {
+                fullFilePath = Path.Combine(path, "ContractTemplate.cs");
+            }
+            else if (result.EndsWith("py", StringComparison.Ordinal))
+            {
+                fullFilePath = Path.Combine(path, "NEP5.py");
+            }
+
+            var sourceCode = File.ReadAllText(fullFilePath);
+            File.WriteAllText(result, sourceCode);
+        }
+
+
 
         public void SendLogToPanel(string s)
         {
@@ -241,7 +257,7 @@ namespace NeoDebuggerUI.ViewModels
 			dialog.Filters = filters;
 			dialog.AllowMultiple = false;
 
-			var result = await dialog.ShowAsync(new Window());
+			var result = await dialog.ShowAsync(Application.Current.MainWindow);
 
 			if (result != null && result.Length > 0)
 			{

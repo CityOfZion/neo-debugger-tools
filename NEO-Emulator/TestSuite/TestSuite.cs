@@ -22,12 +22,19 @@ namespace NEO_Emulator.SmartContractTestSuite
 
 		public SmartContractTestSuite(string fileName)
 		{
-			fileName = fileName.Replace(".avm", ".test.json");
+            if(fileName == null)
+            {
+                return;
+            }
 
-			if (File.Exists(fileName))
-			{
-				var json = File.ReadAllText(fileName);
-				LoadFromJson(json);
+            if (File.Exists(fileName))
+            {
+                fileName = fileName.Replace(".avm", ".test.json");
+                if (File.Exists(fileName))
+                {
+                    var json = File.ReadAllText(fileName);
+                    LoadFromJson(json);
+                }
 			}
 		    else
             {
