@@ -44,6 +44,9 @@ namespace NeoDebuggerUI.Views
             newCSharp.Click += async (o, e) => { await NewCSharpFile(); };
             RenderVMStack(ViewModel.EvaluationStack, ViewModel.AltStack, ViewModel.StackIndex);
 
+            MenuItem newPython = this.FindControl<MenuItem>("MenuItemNewPython");
+            newPython.Click += async (o, e) => { await NewPythonFile(); };
+
             this.ViewModel.EvtVMStackChanged += (eval, alt, index) => RenderVMStack(eval, alt, index);
             this.ViewModel.EvtFileChanged += (fileName) => LoadFile(fileName);
             this.ViewModel.EvtFileToCompileChanged += () => ViewModel.SaveCurrentFileWithContent(_textEditor.Text);
@@ -51,6 +54,21 @@ namespace NeoDebuggerUI.Views
             this.ViewModel.EvtBreakpointStateChanged += (line, addBreakpoint) => UpdateBreakpoint(addBreakpoint, line);
 
             SetHotKeys();
+        }
+
+        public async Task NewPythonFile()
+        {
+            var dialog = new SaveFileDialog();
+            var filters = new List<FileDialogFilter>();
+            var filteredExtensions = new List<string>(new string[] { "py" });
+            var filter = new FileDialogFilter { Extensions = filteredExtensions, Name = "Python File" };
+            filters.Add(filter);
+            dialog.Filters = filters;
+            var result = await dialog.ShowAsync(this);
+            if (result != null)
+            {
+                this.ViewModel.ResetWithNewFile(result);
+            }
         }
 
         public async Task NewCSharpFile()

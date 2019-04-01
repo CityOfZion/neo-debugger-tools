@@ -161,7 +161,13 @@ namespace NeoDebuggerUI.ViewModels
                 _selectedTestCase = DebuggerStore.instance.Tests.cases.ElementAt(0).Key;
             }
             _selectedTestSequence = null;
-            _selectedFunction = DebuggerStore.instance.manager.ABI.entryPoint.name;
+
+            _selectedFunction = "main";
+            if (DebuggerStore.instance.manager.ABI != null)
+            {
+                _selectedFunction = DebuggerStore.instance.manager.ABI.entryPoint.name;
+            }
+
             _selectedTrigger = DebuggerStore.instance.manager.Emulator.currentTrigger.ToString();
             _selectedWitness = DebuggerStore.instance.manager.Emulator.checkWitnessMode.ToString();
             _selectedDate = DateTime.UtcNow;
