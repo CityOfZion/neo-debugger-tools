@@ -54,7 +54,7 @@ namespace Neo.Debugger.Core.Utils
                 return _resetFlag;
             }
         }
-        public DebuggerState Info
+        public DebuggerState State
         {
             get
             {

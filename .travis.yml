@@ -14,9 +14,10 @@ deploy:
   api_key:
     secure: jBINz3B7eTUpUxDCDk26+NySv3h5+cGhM0tF0Z27B3OTeSLH7nnz/F65JmSSJx28IlhtX0n6bJ6SyAn9JARWNz4pH1XhEm7KZT8Bh5o+ef1VnP8P4Yd5iHOmSPzJz0M2ZAQRciK6GEjCH+bOFGXTD3l4JiosMHy0B2kfcppb9cLwelNampHO+qIGhdTyuxaRP+5zI6YXHQdQgqTHiddlJLjwnPKNZ62lAeB06righ9vy27W80N3q84N15iVjlVamU6iV3ZAMcMy1AoBse7yi98/2VTb9xHvQth7nKignrZrC+PuFKqgbzFM8p05OlRZN9DYsJQPTf+QNyF7eFyYSCj6e89cSRMREhmE7mvVpmjkVoEtDW2ioIXG6PxUPV1q/sS7Nd91WBi5Xjqwc41QW2C+xUQBVH4UaMsniyrVG63hkmOXPaPDfmxEv2qgllxCH84mpaQbYUowKC/x+gLQ/sEtHFksXGJTpMl3J4FZDHbzgelliHNKHhTZW16Nn0n22WcG0kXH4DwTZNl+kXfztW454ThfUbMqhskaoYWjdUs6X+iYS79ce4Bv5APIoHskJyA4GlIHqb1/XIE+9o33WKFV5ppAPGJi2EkTl+HpAC1JAULrrcfQajoCHD3mWTELvTXKeg2FA2VBXWZqEzFUnLhgBzVJZZaZ99V5gZxS5lx4=
   file: 
-    - osx-x64.zip
-    - win-x64.zip
-    - linux-x64.zip
+
+    - "neo-debugger-osx-x64.zip"
+    - "neo-debugger-win-x64.zip"
+    - "neo-debugger-linux-x64.zip"
   overwrite: true
   skip_cleanup: true
   on:

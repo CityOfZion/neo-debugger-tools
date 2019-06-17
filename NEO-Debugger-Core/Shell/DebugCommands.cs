@@ -8,7 +8,7 @@ namespace Neo.Debugger.Shell
     {
         public static void UpdateState(DebuggerShell Shell, Action<ShellMessageType, string> output)
         {
-            var state = Shell.Debugger.Info;
+            var state = Shell.Debugger.State;
 
             output(ShellMessageType.Default, $"VM state: {state.state}");
             output(ShellMessageType.Default, $"Instruction pointer: {state.offset}");
@@ -65,7 +65,7 @@ namespace Neo.Debugger.Shell
 
         public override void Execute(string[] args, Action<ShellMessageType, string> output)
         {
-            if (Shell.Debugger.Info.state == DebuggerState.State.Running || Shell.Debugger.Info.state == DebuggerState.State.Break)
+            if (Shell.Debugger.State.state == DebuggerState.State.Running || Shell.Debugger.State.state == DebuggerState.State.Break)
             {
                 output(ShellMessageType.Default, "Resuming invoke.");
                 Shell.Debugger.Run();
@@ -85,19 +85,19 @@ namespace Neo.Debugger.Shell
 
         public override void Execute(string[] args, Action<ShellMessageType, string> output)
         {
-            if (Shell.Debugger.Info.state == DebuggerState.State.Running || Shell.Debugger.Info.state == DebuggerState.State.Break)
+            if (Shell.Debugger.State.state == DebuggerState.State.Running || Shell.Debugger.State.state == DebuggerState.State.Break)
             {
                 output(ShellMessageType.Default, "Stepping invoke.");
 
                 string startFile;
-                var startLine = Shell.Debugger.ResolveLine(Shell.Debugger.Info.offset, true, out startFile);
+                var startLine = Shell.Debugger.ResolveLine(Shell.Debugger.State.offset, true, out startFile);
 
                 string currentFile;
                 int currentLine;
                 do
                 {
                     Shell.Debugger.Step();
-                    currentLine = Shell.Debugger.ResolveLine(Shell.Debugger.Info.offset, true, out currentFile);
+                    currentLine = Shell.Debugger.ResolveLine(Shell.Debugger.State.offset, true, out currentFile);
                 } while (currentFile == startFile && currentLine == startLine);
 
                 ShellRunner.UpdateState(Shell, output);

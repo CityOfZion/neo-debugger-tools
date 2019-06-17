@@ -92,7 +92,7 @@ namespace Neo.VM
 
         public bool Invoke(byte[] method, ExecutionEngine engine)
         {
-            return Invoke(method.ToString(), engine);
+            return Invoke(System.Text.Encoding.ASCII.GetString(method), engine);
         }
     }
 }

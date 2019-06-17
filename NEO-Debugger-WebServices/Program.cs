@@ -256,14 +256,14 @@ namespace Neo.Debugger.Electron
                 }
 
                 string filePath;
-                var curLine = _shell.Debugger.ResolveLine(_shell.Debugger.Info.offset, true, out filePath);
+                var curLine = _shell.Debugger.ResolveLine(_shell.Debugger.State.offset, true, out filePath);
 
-                output.AddField("state", _shell.Debugger.Info.state);
-                output.AddField("offset", _shell.Debugger.Info.offset);
+                output.AddField("state", _shell.Debugger.State.state);
+                output.AddField("offset", _shell.Debugger.State.offset);
                 output.AddField("line", curLine);
                 output.AddField("path", filePath);
 
-                if (_shell.Debugger.Info.state == Emulation.DebuggerState.State.Finished)
+                if (_shell.Debugger.State.state == Emulation.DebuggerState.State.Finished)
                 {
                     var val = _debugger.Emulator.GetOutput();
 

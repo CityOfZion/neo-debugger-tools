@@ -435,7 +435,14 @@ namespace Neo.Emulation
                 return lastState;
             }
 
-            lastState = new DebuggerState(DebuggerState.State.Running, lastOffset);
+            if (lastState.state == DebuggerState.State.Break) {
+                lastState = new DebuggerState(DebuggerState.State.Break, lastOffset);
+            }
+            else
+            {
+                lastState = new DebuggerState(DebuggerState.State.Running, lastOffset);
+            }
+
             return lastState;
         }
 
